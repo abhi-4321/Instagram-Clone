@@ -1,6 +1,6 @@
 import express, { Express, Request, Response } from 'express'
-import connectDb from './db'
-import Routes from './routes'
+import connectDb from './util/db'
+import Routes from './util/routes'
 import dotenv from 'dotenv'
 
 const app: Express = express()

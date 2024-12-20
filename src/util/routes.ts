@@ -1,5 +1,4 @@
 import { Router, Request, Response } from "express"
-import { S3Client } from "@aws-sdk/client-s3"
 import UserRoutes from "../routes/UserRoutes"
 import PostRoutes from "../routes/PostRoutes"
 import dotenv from 'dotenv'

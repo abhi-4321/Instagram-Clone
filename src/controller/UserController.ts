@@ -7,6 +7,7 @@ import client from "../util/s3Client"
 import { Post } from "../model/Post"
 import { Highlight } from "../model/Highlight"
 import { connection } from "mongoose"
+import { Comment } from "../model/Comment"
 
 // Image Name Generator
 const randomImageName = () => crypto.randomBytes(32).toString('hex')
@@ -96,9 +97,15 @@ const getAllUsers = async (req: Request, res: Response) => {
                 const url = await getSignedUrl(client, command, { expiresIn: 3600 })
 
                 post.postUrl = url
+                post.likesCount = post.likedBy.length.toString()
+
+                const comments = await Comment.find({ postId: post.id })
+                post.comments = comments
+                post.commentsCount = post.comments.length.toString()
             }
 
-            user!!.posts = posts
+            user.posts = posts
+            user.postsCount = posts.length.toString()
 
             // Get Highlights Signed Urls
             const highlights = await Highlight.find({ userId: user.id })
@@ -115,7 +122,7 @@ const getAllUsers = async (req: Request, res: Response) => {
                 highlight.highlightUrl = url
             }
 
-            user!!.highlights = highlights
+            user.highlights = highlights
 
             if (user?.profileImageUrl == "") {
                 continue
@@ -128,11 +135,12 @@ const getAllUsers = async (req: Request, res: Response) => {
 
             const command = new GetObjectCommand(getObjectParams)
             const url = await getSignedUrl(client, command, { expiresIn: 3600 })
-            user!!.profileImageUrl = url
+            user.profileImageUrl = url
 
         }
 
         res.status(200).json(users)
+
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch users', details: error })
     }
@@ -156,7 +164,7 @@ const getUserById = async (req: Request, res: Response) => {
 
             const command = new GetObjectCommand(getObjectParams)
             const url = await getSignedUrl(client, command, { expiresIn: 3600 })
-            user!!.profileImageUrl = url
+            user.profileImageUrl = url
         }
 
         const posts = await Post.find({ userId: id })
@@ -172,9 +180,15 @@ const getUserById = async (req: Request, res: Response) => {
             const url = await getSignedUrl(client, command, { expiresIn: 3600 })
 
             post.postUrl = url
+            post.likesCount = post.likedBy.length.toString()
+
+            const comments = await Comment.find({ postId: post.id })
+            post.comments = comments
+            post.commentsCount = post.comments.length.toString()
         }
 
-        user!!.posts = posts
+        user.posts = posts
+        user.postsCount = posts.length.toString()
 
         // Get Highlights Signed Urls
         const highlights = await Highlight.find({ userId: id })
@@ -191,7 +205,7 @@ const getUserById = async (req: Request, res: Response) => {
             highlight.highlightUrl = url
         }
 
-        user!!.highlights = highlights
+        user.highlights = highlights
 
         res.status(200).json(user)
     } catch (error: any) {

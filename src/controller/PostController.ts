@@ -1,7 +1,7 @@
 import { Request, Response } from "express"
 import { User } from "../model/User"
 import { Post } from '../model/Post'
-import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
 import crypto from 'crypto'
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 import client from "../util/s3Client"
@@ -81,16 +81,37 @@ const createPost = async (req: Request, res: Response) => {
 }
 
 const deletePost = async (req: Request, res: Response) => {
-    const uid = parseInt(req.params.uid)
-    const pid = parseInt(req.params.pid)
+    try {
+        const uid = parseInt(req.params.uid)
+        const pid = parseInt(req.params.pid)
 
-    const post = await Post.findOneAndDelete({ id: pid, userId: uid })
+        const post = await Post.findOne({ id: pid, userId: uid })
 
-    if (!post) {
-        res.status(404).send({ message: "Post not found" })
-    } else {
-        res.status(200).send({ message: "Post deleted" })
+        if (!post) {
+            res.status(404).send({ message: "Post not found" })
+            return
+        }
+
+        const params = {
+            Bucket: bucketName,
+            Key: post.postUrl
+        }
+
+        const command = new DeleteObjectCommand(params)
+        await client.send(command)
+
+        const deletedPost = await post.deleteOne()
+
+        if (!deletePost) {
+            res.status(500).send({ message: "Unkown error occured" })
+        } else {
+            res.status(200).send({ message: "Post deleted" })
+        }
+
+    } catch (error: any) {
+        res.status(500).json({ error: 'Failed to delete post', details: error })
     }
+
 }
 
 const getPostById = async (req: Request, res: Response) => {

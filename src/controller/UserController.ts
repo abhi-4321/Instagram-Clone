@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import { User } from "../model/User"
-import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
 import crypto from 'crypto'
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 import client from "../util/s3Client"
@@ -229,21 +229,54 @@ const deleteUser = async (req: Request, res: Response) => {
         session.startTransaction()
 
         const id = parseInt(req.params.id)
-        const deletedUser = await User.findOneAndDelete({ id: id })
+        const user = await User.findOne({ id: id })
 
-        if (!deletedUser) {
+        if (!user) {
             res.status(404).json({ error: 'User not found' })
             return
         }
 
+        const profileParams = {
+            Bucket: bucketName,
+            Key: user.profileImageUrl
+        }
+
+        const command = new DeleteObjectCommand(profileParams)
+
+        await client.send(command)
+        await user.deleteOne()
+
+        const posts = await Post.find({ userId: id })
+        const highlights = await Highlight.find({ userId: id })
+
+        for (const post of posts) {
+            const params = {
+                Bucket: bucketName,
+                Key: post.postUrl
+            }
+            const command = new DeleteObjectCommand(params)
+
+            await client.send(command)
+        }
+
+        for (const highlight of highlights) {
+            const params = {
+                Bucket: bucketName,
+                Key: highlight.highlightUrl
+            }
+            const command = new DeleteObjectCommand(params)
+
+            await client.send(command)
+        }
+        
         const deletedPosts = await Post.deleteMany({ userId: id })
         const deletedHighlights = await Highlight.deleteMany({ userId: id })
 
-        if (!deletedPosts || !deletedHighlights) { 
+        if (!deletedPosts || !deletedHighlights) {
             res.status(500).json({ error: 'Failed to delete user' })
             return
         }
-        
+
         await session.commitTransaction()
 
         res.status(200).json({ message: 'User deleted successfully' })

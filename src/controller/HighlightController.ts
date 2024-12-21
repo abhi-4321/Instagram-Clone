@@ -1,7 +1,7 @@
 import { Request, Response } from "express"
 import { User } from "../model/User"
 import { Highlight } from '../model/Highlight'
-import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
 import crypto from 'crypto'
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 import client from "../util/s3Client"
@@ -15,7 +15,7 @@ const createHighlight = async (req: Request, res: Response) => {
             res.status(400).json({ message: "Bad Request" })
             return
         }
-            
+
         // Upload image to S3 Bucket & Data to MongoDB
         const id = parseInt(req.params.id)
         const user = await User.findOne({ id: id })
@@ -55,15 +55,33 @@ const createHighlight = async (req: Request, res: Response) => {
 }
 
 const deleteHighlight = async (req: Request, res: Response) => {
-    const hid = parseInt(req.params.hid)
-    const uid = parseInt(req.params.uid)
+    try {
+        const hid = parseInt(req.params.hid)
+        const uid = parseInt(req.params.uid)
 
-    const highlight = await Highlight.findOneAndDelete({ id: hid, userId: uid })
+        const highlight = await Highlight.findOne({ id: hid, userId: uid })
 
-    if (!highlight) {
-        res.status(404).send({ message: "Highlight not found" })
-    } else {
-       res.status(200).send({ message: "Highlight deleted" }) 
+        if (!highlight) {
+            res.status(404).send({ message: "Highlight not found" })
+        }
+
+        const params = {
+            Bucket: bucketName,
+            Key: highlight?.highlightUrl
+        }
+
+        const command = new DeleteObjectCommand(params)
+        await client.send(command)
+
+        const deleteHighlight = await highlight?.deleteOne()
+
+        if (!deleteHighlight) {
+            res.status(500).send({ message: "Unknown error occured" })
+        } else {
+            res.status(200).send({ message: "Highlight deleted" })
+        }
+    } catch (error: any) {
+        
     }
 }
 

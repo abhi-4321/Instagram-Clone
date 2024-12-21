@@ -4,6 +4,12 @@ import postController from '../controller/PostController'
 
 const router = Router()
 
+// Comment
+router.post("/:userId/like/:postId", postController.comment)
+
+// Like Post
+router.post("/:userId/like/:postId", postController.likePost)
+
 // Feed 
 router.get("/", postController.getFeed)
 

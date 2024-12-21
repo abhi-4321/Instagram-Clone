@@ -1,11 +1,12 @@
 import { Router } from "express"
-import multer from "../util/multer"
-import userController from "../controller/UserController"
 import followController from "../controller/FollowController"
 
 const router = Router()
 
 // Follow User
-router.post("/:senderId/:receiverId", followController.follow)
+router.post("/:followedBy/follow/:followedTo", followController.follow)
+
+// Unfollow User
+router.post("/:unfollowedBy/unfollow/:unfollowedTo", followController.unfollow)
 
 export default router

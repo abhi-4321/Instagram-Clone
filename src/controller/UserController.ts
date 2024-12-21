@@ -8,6 +8,8 @@ import { Post } from "../model/Post"
 import { Highlight } from "../model/Highlight"
 import { connection } from "mongoose"
 import { Comment } from "../model/Comment"
+import { FollowEntry } from "../model/Followers"
+import { assert } from "console"
 
 // Image Name Generator
 const randomImageName = () => crypto.randomBytes(32).toString('hex')
@@ -73,6 +75,15 @@ const addUser = async (req: Request, res: Response) => {
         })
 
         const savedUser = await user.save()
+
+        const followEntry = new FollowEntry({
+            userId: savedUser.id,
+            followingList: [],
+            followersList: []
+        })
+
+        await followEntry.save()
+
         res.status(201).json(savedUser)
     } catch (error) {
         res.status(500).json({ error: "Failed to create user", details: error })
@@ -136,6 +147,10 @@ const getAllUsers = async (req: Request, res: Response) => {
             const url = await getSignedUrl(client, command, { expiresIn: 3600 })
             user.profileImageUrl = url
 
+            const entry = await FollowEntry.findOne({ userId: user.id })
+
+            user.followersCount = entry!!.followersList.length.toString()
+            user.followingCount = entry!!.followingList.length.toString()
         }
 
         res.status(200).json(users)
@@ -204,6 +219,11 @@ const getUserById = async (req: Request, res: Response) => {
         }
 
         user.highlights = highlights
+
+        const entry = await FollowEntry.findOne({ userId: id })
+
+        user.followersCount = entry!!.followersList.length.toString()
+        user.followingCount = entry!!.followingList.length.toString()
 
         res.status(200).json(user)
     } catch (error: any) {
@@ -289,6 +309,7 @@ const deleteUser = async (req: Request, res: Response) => {
             return
         }
 
+        await FollowEntry.findOneAndDelete({ userId: id })
         await session.commitTransaction()
 
         res.status(200).json({ message: 'User deleted successfully' })

@@ -17,6 +17,11 @@ const follow = async (req: Request, res: Response) => {
             return
         }
 
+        if (followKarneWala.followingList.includes(followedTo) || followHoneWala.followersList.includes(followedBy)) {
+            res.status(200).json({ message: `User ${followedBy} already follows User ${followedTo}` })
+            return
+        } 
+
         followKarneWala.followingList.push(followedTo)
         followHoneWala.followersList.push(followedBy)
 
@@ -36,8 +41,8 @@ const follow = async (req: Request, res: Response) => {
 
 const unfollow = async (req: Request, res: Response) => {
     try {
-        const unfollowedBy = parseInt(req.params.followedBy)
-        const unfollowedTo = parseInt(req.params.followedTo)
+        const unfollowedBy = parseInt(req.params.unfollowedBy)
+        const unfollowedTo = parseInt(req.params.unfollowedTo)
 
         const unfollowKarneWala = await FollowEntry.findOne({ userId: unfollowedBy })
         const unfollowHoneWala = await FollowEntry.findOne({ userId: unfollowedTo })
@@ -46,6 +51,11 @@ const unfollow = async (req: Request, res: Response) => {
             res.status(404).json({ message: "User not found" })
             return
         }
+
+        if(!unfollowKarneWala.followingList.includes(unfollowedTo) || !unfollowHoneWala.followersList.includes(unfollowedBy)) {
+            res.status(200).json({ message: `User ${unfollowedBy} is not following User ${unfollowedTo}` })
+            return
+        } 
 
         unfollowKarneWala.followingList = unfollowKarneWala.followingList.filter(id => id != unfollowedTo)
         unfollowHoneWala.followersList = unfollowHoneWala.followersList.filter(id => id != unfollowedBy)

@@ -65,9 +65,6 @@ const addUser = async (req: Request, res: Response) => {
         const user = new User({
             id: count + 1,
             username: body.username,
-            postsCount: "0",
-            followersCount: body.followersCount,
-            followingCount: body.followingCount,
             fullName: body.fullName,
             bio: body.bio,
             highlights: [],

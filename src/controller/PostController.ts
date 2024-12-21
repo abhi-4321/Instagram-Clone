@@ -11,6 +11,42 @@ import { Comment } from "../model/Comment"
 const randomImageName = () => crypto.randomBytes(32).toString('hex')
 const bucketName = process.env.BUCKET_NAME || 'myBucketName'
 
+const likeComment = async (req: Request, res: Response) => {
+    try {
+        const userId = parseInt(req.params.userId)
+        const commentId = parseInt(req.params.commentId)
+
+        const comment = await Comment.findOne({ id: commentId })
+
+        if (!comment) {
+            res.status(404).json({ message: "Comment not found" })
+            return
+        }
+
+        comment.likedBy = comment.likedBy ?? []
+
+        var message: string
+
+        // Remove Like
+        if (comment.likedBy.includes(userId)) {
+            comment.likedBy = comment.likedBy.filter(it => it != userId)
+            message = "Unliked"            
+        }
+        // Add Like
+        else {
+            comment.likedBy.push(userId)
+            message = "Liked"  
+        }
+        
+        comment.likesCount = comment.likedBy.length.toString()
+        await comment.save()
+        res.status(200).json({ message: message })
+
+    } catch (error) {
+        
+    }
+}
+
 const comment = async (req: Request, res: Response) => {
     try {
         const userId = parseInt(req.params.userId)
@@ -66,19 +102,23 @@ const likePost = async (req: Request, res: Response) => {
         }
 
         post.likedBy = post.likedBy ?? []
+        var message: string
 
         // Remove Like
         if (post.likedBy.includes(userId)) {
             post.likedBy = post.likedBy.filter(it => it != userId)
-            await post.save()
-            res.status(200).json({ message: "Unliked" })
+            message = "Unliked"
         }
         // Add Like
         else {
             post.likedBy.push(userId)
-            await post.save()
-            res.status(200).json({ message: "Liked" })
+            message = "Liked"
         }
+        
+        post.likesCount = post.likedBy.length.toString()
+        await post.save()
+        res.status(200).json({ message: message })
+    
     } catch (error: any) {
         res.status(500).json({ error: 'Failed to like post', details: error })
     }
@@ -97,7 +137,6 @@ const getFeed = async (req: Request, res: Response) => {
             const command = new GetObjectCommand(getObjectParams)
             const url = await getSignedUrl(client, command, { expiresIn: 3600 })
             post.postUrl = url
-            post.likesCount = post.likedBy.length.toString()
             
             const comments = await Comment.find({ postId: post.id })
             post.comments = comments
@@ -209,7 +248,6 @@ const getPostById = async (req: Request, res: Response) => {
             const command = new GetObjectCommand(getObjectParams)
             const url = await getSignedUrl(client, command, { expiresIn: 3600 })
             post.postUrl = url
-            post.likesCount = post.likedBy.length.toString()
             
             const comments = await Comment.find({ postId: post.id })
             post.comments = comments
@@ -236,7 +274,6 @@ const getAllPosts = async (req: Request, res: Response) => {
             const command = new GetObjectCommand(getObjectParams)
             const url = await getSignedUrl(client, command, { expiresIn: 3600 })
             post.postUrl = url
-            post.likesCount = post.likedBy.length.toString()
             
             const comments = await Comment.find({ postId: post.id })
             post.comments = comments
@@ -280,5 +317,6 @@ export default {
     getAllPosts,
     updateCaption,
     likePost,
-    comment
+    comment,
+    likeComment
 }

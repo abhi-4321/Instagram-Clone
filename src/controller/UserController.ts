@@ -97,7 +97,6 @@ const getAllUsers = async (req: Request, res: Response) => {
                 const url = await getSignedUrl(client, command, { expiresIn: 3600 })
 
                 post.postUrl = url
-                post.likesCount = post.likedBy.length.toString()
 
                 const comments = await Comment.find({ postId: post.id })
                 post.comments = comments
@@ -180,7 +179,6 @@ const getUserById = async (req: Request, res: Response) => {
             const url = await getSignedUrl(client, command, { expiresIn: 3600 })
 
             post.postUrl = url
-            post.likesCount = post.likedBy.length.toString()
 
             const comments = await Comment.find({ postId: post.id })
             post.comments = comments

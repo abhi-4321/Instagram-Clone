@@ -17,6 +17,13 @@ router.post("/", userController.addUser)
 // All Users
 router.get("/", userController.getAllUsers)
 
+/**
+ * @swagger
+ * /{userId}:
+ *   get:
+ *     summary: Retrieve user by userId.
+ *     description: Retrieve user by userId.
+ */
 // Get User
 router.get("/:userId", userController.getUserById)
 

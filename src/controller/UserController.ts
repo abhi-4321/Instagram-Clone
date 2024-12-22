@@ -9,7 +9,6 @@ import { Highlight } from "../model/Highlight"
 import { connection } from "mongoose"
 import { Comment } from "../model/Comment"
 import { FollowEntry } from "../model/Followers"
-import { assert } from "console"
 
 // Image Name Generator
 const randomImageName = () => crypto.randomBytes(32).toString('hex')
@@ -18,10 +17,10 @@ const bucketName = process.env.BUCKET_NAME || 'myBucketName'
 const changeVisibility = async (req: Request, res: Response) => {
     try {
         if (!req.file) {
-            
+
         }
     } catch (error) {
-        
+
     }
 }
 
@@ -307,7 +306,7 @@ const deleteUser = async (req: Request, res: Response) => {
 
             await client.send(command)
         }
-        
+
         const deletedPosts = await Post.deleteMany({ userId: userId })
         const deletedHighlights = await Highlight.deleteMany({ userId: userId })
 

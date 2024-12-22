@@ -126,7 +126,8 @@ const likePost = async (req: Request, res: Response) => {
 
 const getFeed = async (req: Request, res: Response) => {
     try {
-        const posts = await Post.find()
+        const userId = parseInt(req.params.userId)
+        const posts = await Post.find({ userId: { $ne: userId } })
 
         for (const post of posts) {
             const getObjectParams = {
@@ -156,8 +157,8 @@ const createPost = async (req: Request, res: Response) => {
             res.status(400).json({ message: "Bad Request" })
             return
         }
-        const id = parseInt(req.params.id)
-        const user = await User.findOne({ id: id })
+        const userId = parseInt(req.params.userId)
+        const user = await User.findOne({ id: userId })
 
         if (!user) {
             res.status(404).json({ message: "User not found" })
@@ -180,7 +181,7 @@ const createPost = async (req: Request, res: Response) => {
 
         const post = new Post({
             id: count + 1,
-            userId: id,
+            userId: userId,
             caption: req.body.caption || "",
             postUrl: imageName
         })
@@ -200,10 +201,10 @@ const createPost = async (req: Request, res: Response) => {
 
 const deletePost = async (req: Request, res: Response) => {
     try {
-        const uid = parseInt(req.params.uid)
-        const pid = parseInt(req.params.pid)
+        const userId = parseInt(req.params.userId)
+        const postId = parseInt(req.params.postId)
 
-        const post = await Post.findOne({ id: pid, userId: uid })
+        const post = await Post.findOne({ id: postId, userId: userId })
 
         if (!post) {
             res.status(404).send({ message: "Post not found" })
@@ -229,13 +230,12 @@ const deletePost = async (req: Request, res: Response) => {
     } catch (error: any) {
         res.status(500).json({ error: 'Failed to delete post', details: error })
     }
-
 }
 
 const getPostById = async (req: Request, res: Response) => {
     try {
-        const pid = parseInt(req.params.pid)
-        const post = await Post.findOne({ id: pid })
+        const postId = parseInt(req.params.postId)
+        const post = await Post.findOne({ id: postId })
 
         if (!post) {
             res.status(404).json({ error: 'Post not found' })
@@ -262,8 +262,8 @@ const getPostById = async (req: Request, res: Response) => {
 
 const getAllPosts = async (req: Request, res: Response) => {
     try {
-        const uid = parseInt(req.params.uid)
-        const posts = await Post.find({ userId: uid })
+        const userId = parseInt(req.params.userId)
+        const posts = await Post.find({ userId: userId })
 
         for (const post of posts) {
             const getObjectParams = {
@@ -289,15 +289,15 @@ const getAllPosts = async (req: Request, res: Response) => {
 
 const updateCaption = async (req: Request, res: Response) => {
     try {
-        const uid = parseInt(req.params.uid)
-        const pid = parseInt(req.params.pid)
+        const userId = parseInt(req.params.userId)
+        const postId = parseInt(req.params.postId)
         const caption = req.body.caption
 
         if (!caption) {
             res.status(400).json({ error: "Bad Request" })
             return
         }
-        const post = await Post.findOneAndUpdate({ id: pid, userId: uid }, { caption: caption }, { new: true })
+        const post = await Post.findOneAndUpdate({ id: postId, userId: userId }, { caption: caption }, { new: true })
 
         if (!post) {
             res.status(404).json({ error: "Post Not Found" })

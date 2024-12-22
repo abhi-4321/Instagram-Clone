@@ -5,15 +5,15 @@ import multer from "../util/multer"
 const router = Router()
 
 // Create Highlight
-router.post("/:id", multer.single('image'), highlightController.createHighlight)
+router.post("/:userId", multer.single('image'), highlightController.createHighlight)
 
 // Delete Highlight
-router.delete('/:uid/:hid', highlightController.deleteHighlight)
+router.delete('/:userId/:highlightId', highlightController.deleteHighlight)
 
 // Get Highlight
-router.get("/:uid/:hid", highlightController.getHighlight)
+router.get("/:userId/:highlightId", highlightController.getHighlight)
 
 // All Highlights
-router.get("/:uid", highlightController.allHighlights)
+router.get("/:userId", highlightController.allHighlights)
 
 export default router

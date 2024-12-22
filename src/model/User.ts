@@ -13,6 +13,7 @@ export interface User extends Document {
   bio: string
   highlights?: Highlight[]
   posts?: Post[]
+  private: boolean
 }
 
 const userSchema = new Schema<User>({
@@ -26,6 +27,7 @@ const userSchema = new Schema<User>({
   bio: { type: String, required: true },
   highlights: [],
   posts: [],
+  private: { type: Boolean, default: false }
 })
 
 export const User = mongoose.model<User>("User", userSchema, "users")

@@ -17,8 +17,8 @@ const createHighlight = async (req: Request, res: Response) => {
         }
 
         // Upload image to S3 Bucket & Data to MongoDB
-        const id = parseInt(req.params.id)
-        const user = await User.findOne({ id: id })
+        const userId = parseInt(req.params.userId)
+        const user = await User.findOne({ id: userId })
         const title = req.body.title
 
         if (!user) {
@@ -37,11 +37,11 @@ const createHighlight = async (req: Request, res: Response) => {
 
         await client.send(command)
 
-        const count = await Highlight.countDocuments({ userId: id })
+        const count = await Highlight.countDocuments({ userId: userId })
 
         const highlight = new Highlight({
             id: count + 1,
-            userId: id,
+            userId: userId,
             highlightUrl: imageName,
             title: title
         })
@@ -56,10 +56,10 @@ const createHighlight = async (req: Request, res: Response) => {
 
 const deleteHighlight = async (req: Request, res: Response) => {
     try {
-        const hid = parseInt(req.params.hid)
-        const uid = parseInt(req.params.uid)
+        const highlightId = parseInt(req.params.highlightId)
+        const userId = parseInt(req.params.userId)
 
-        const highlight = await Highlight.findOne({ id: hid, userId: uid })
+        const highlight = await Highlight.findOne({ id: highlightId, userId: userId })
 
         if (!highlight) {
             res.status(404).send({ message: "Highlight not found" })
@@ -87,9 +87,9 @@ const deleteHighlight = async (req: Request, res: Response) => {
 
 const getHighlight = async (req: Request, res: Response) => {
     try {
-        const hid = parseInt(req.params.hid)
-        const uid = parseInt(req.params.uid)
-        const highlight = await Highlight.findOne({ id: hid, userId: uid })
+        const highlightId = parseInt(req.params.highlightId)
+        const userId = parseInt(req.params.userId)
+        const highlight = await Highlight.findOne({ id: highlightId, userId: userId })
 
         if (!highlight) {
             res.status(404).json({ error: 'Highlight not found' })
@@ -112,8 +112,8 @@ const getHighlight = async (req: Request, res: Response) => {
 
 const allHighlights = async (req: Request, res: Response) => {
     try {
-        const uid = parseInt(req.params.uid)
-        const highlights = await Highlight.find({ userId: uid })
+        const userId = parseInt(req.params.userId)
+        const highlights = await Highlight.find({ userId: userId })
 
         for (const highlight of highlights) {
             const getObjectParams = {

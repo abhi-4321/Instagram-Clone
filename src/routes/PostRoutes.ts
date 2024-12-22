@@ -14,21 +14,21 @@ router.post("/:userId/comment/:postId", postController.comment)
 router.post("/:userId/like/:postId", postController.likePost)
 
 // Feed 
-router.get("/", postController.getFeed)
+router.get("/:userId", postController.getFeed)
 
 // Create Post
-router.post("/:id", multer.single('image'), postController.createPost)
+router.post("/:userId", multer.single('image'), postController.createPost)
 
 // Delete Post
-router.delete('/:uid/:pid', postController.deletePost)
+router.delete('/:userId/:postId', postController.deletePost)
 
 // Get Post
-router.get("/:pid", postController.getPostById)
+router.get("/:postId", postController.getPostById)
 
 // All Posts 
-router.get("/:uid", postController.getAllPosts)
+router.get("/all/:userId", postController.getAllPosts)
 
 // Update Caption 
-router.put("/user/:uid/post/:pid", postController.updateCaption)
+router.put("/:userId/:postId", postController.updateCaption)
 
 export default router

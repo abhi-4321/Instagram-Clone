@@ -15,14 +15,24 @@ import { assert } from "console"
 const randomImageName = () => crypto.randomBytes(32).toString('hex')
 const bucketName = process.env.BUCKET_NAME || 'myBucketName'
 
+const changeVisibility = async (req: Request, res: Response) => {
+    try {
+        if (!req.file) {
+            
+        }
+    } catch (error) {
+        
+    }
+}
+
 const uploadProfileImage = async (req: Request, res: Response) => {
     try {
         if (!req.file) {
             res.status(400).json({ message: "Bad Request" })
             return
         }
-        const id = parseInt(req.params.id)
-        const user = await User.findOne({ id: id })
+        const userId = parseInt(req.params.userId)
+        const user = await User.findOne({ id: userId })
 
         if (!user) {
             res.status(404).json({ message: "User not found" })
@@ -159,8 +169,8 @@ const getAllUsers = async (req: Request, res: Response) => {
 
 const getUserById = async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id)
-        const user = await User.findOne({ id: id })
+        const userId = parseInt(req.params.userId)
+        const user = await User.findOne({ id: userId })
 
         if (!user) {
             res.status(404).json({ error: 'User not found' })
@@ -178,7 +188,7 @@ const getUserById = async (req: Request, res: Response) => {
             user.profileImageUrl = url
         }
 
-        const posts = await Post.find({ userId: id })
+        const posts = await Post.find({ userId: userId })
 
         // Get Posts' Signed Urls
         for (const post of posts) {
@@ -201,7 +211,7 @@ const getUserById = async (req: Request, res: Response) => {
         user.postsCount = posts.length.toString()
 
         // Get Highlights Signed Urls
-        const highlights = await Highlight.find({ userId: id })
+        const highlights = await Highlight.find({ userId: userId })
 
         for (const highlight of highlights) {
             const getObjectParams = {
@@ -217,7 +227,7 @@ const getUserById = async (req: Request, res: Response) => {
 
         user.highlights = highlights
 
-        const entry = await FollowEntry.findOne({ userId: id })
+        const entry = await FollowEntry.findOne({ userId: userId })
 
         user.followersCount = entry!!.followersList.length.toString()
         user.followingCount = entry!!.followingList.length.toString()
@@ -230,7 +240,7 @@ const getUserById = async (req: Request, res: Response) => {
 
 const updateBio = async (req: Request, res: Response) => {
     try {
-        const id = req.params.id
+        const userId = parseInt(req.params.userId)
         const bio = req.body.bio
 
         if (!bio || bio == "") {
@@ -238,7 +248,7 @@ const updateBio = async (req: Request, res: Response) => {
             return
         }
 
-        const user = await User.findOneAndUpdate({ id: parseInt(id) }, { bio: bio }, { new: true })
+        const user = await User.findOneAndUpdate({ id: userId }, { bio: bio }, { new: true })
 
         if (!user) {
             res.status(404).json({ error: "User Not Found" })
@@ -257,8 +267,8 @@ const deleteUser = async (req: Request, res: Response) => {
     try {
         session.startTransaction()
 
-        const id = parseInt(req.params.id)
-        const user = await User.findOne({ id: id })
+        const userId = parseInt(req.params.userId)
+        const user = await User.findOne({ id: userId })
 
         if (!user) {
             res.status(404).json({ error: 'User not found' })
@@ -275,8 +285,8 @@ const deleteUser = async (req: Request, res: Response) => {
         await client.send(command)
         await user.deleteOne()
 
-        const posts = await Post.find({ userId: id })
-        const highlights = await Highlight.find({ userId: id })
+        const posts = await Post.find({ userId: userId })
+        const highlights = await Highlight.find({ userId: userId })
 
         for (const post of posts) {
             const params = {
@@ -298,15 +308,14 @@ const deleteUser = async (req: Request, res: Response) => {
             await client.send(command)
         }
         
-        const deletedPosts = await Post.deleteMany({ userId: id })
-        const deletedHighlights = await Highlight.deleteMany({ userId: id })
+        const deletedPosts = await Post.deleteMany({ userId: userId })
+        const deletedHighlights = await Highlight.deleteMany({ userId: userId })
 
         if (!deletedPosts || !deletedHighlights) {
             res.status(500).json({ error: 'Failed to delete user' })
             return
         }
 
-        await FollowEntry.findOneAndDelete({ userId: id })
         await session.commitTransaction()
 
         res.status(200).json({ message: 'User deleted successfully' })
@@ -323,5 +332,6 @@ export default {
     getAllUsers,
     getUserById,
     updateBio,
-    deleteUser
+    deleteUser,
+    changeVisibility
 }

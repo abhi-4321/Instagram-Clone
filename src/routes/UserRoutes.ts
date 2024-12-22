@@ -1,11 +1,15 @@
 import { Router } from "express"
 import multer from "../util/multer"
 import userController from "../controller/UserController"
+import followController from "../controller/FollowController"
 
 const router = Router()
 
+// Follow-Unfollow User
+router.post("/:followedBy/follow/:followedTo", followController.follow)
+
 // Profile Image
-router.post("/:id/profileImage", multer.single('image'), userController.uploadProfileImage)
+router.post("/:userId/profileImage", multer.single('image'), userController.uploadProfileImage)
 
 // Add User
 router.post("/", userController.addUser)
@@ -14,12 +18,12 @@ router.post("/", userController.addUser)
 router.get("/", userController.getAllUsers)
 
 // Get User
-router.get("/:id", userController.getUserById)
+router.get("/:userId", userController.getUserById)
 
 // Update Bio
-router.put("/:id", userController.updateBio)
+router.put("/:userId", userController.updateBio)
 
 // Delete User
-router.delete("/:id", userController.deleteUser)
+router.delete("/:userId", userController.deleteUser)
 
 export default router

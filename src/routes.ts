@@ -8,6 +8,9 @@ dotenv.config()
 
 const route = Router()
 
+/**
+* #swagger.tags = ['User Controller']
+* */
 route.use('/user', UserRoutes) // User Routes
 route.use('/post', PostRoutes) // Post Routes
 route.use('/highlight', HighlightRoute) // Highlight Routes

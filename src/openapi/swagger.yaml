@@ -1,0 +1,987 @@
+openapi: 3.0.0
+info:
+  title: Instagram Clone
+  version: 1.0.0
+  description: This is a REST API application made with Express
+  license:
+    name: Licensed Under MIT
+    url: "https://spdx.org/licenses/MIT.html"
+  contact:
+    name: Abhinav Mahalwal
+    url: "https://jsonplaceholder.typicode.com"
+
+paths:
+
+  # User
+  # Controller
+
+  /user/{userId}:
+    # Get user details by ID
+    get:
+      tags:
+        - User Controller
+      description: Get user details by ID.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: User details retrieved successfully.
+        404:
+          description: User not found.
+        500:
+          description: Internal server error.
+
+    # Delete user by ID
+    delete:
+      tags:
+        - User Controller
+      description: Delete a user by their user ID, along with their posts and highlights.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The ID of the user to be deleted.
+          schema:
+            type: integer
+      responses:
+        200:
+          description: User deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User deleted successfully"
+        404:
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "User not found"
+        500:
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to delete user"
+                  details:
+                    type: string
+                    example: "Detailed error message here."
+
+  /user:
+    # Get all users
+    get:
+      tags:
+        - User Controller
+      description: Retrieve all users.
+      responses:
+        200:
+          description: Successfully retrieved all users.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      description: Unique ID of the user.
+                      example: "12345"
+                    username:
+                      type: string
+                      description: The username of the user.
+                      example: "johndoe"
+                    profileImageUrl:
+                      type: string
+                      description: Signed URL for the user's profile image.
+                      example: "https://example.com/signed-url"
+                    posts:
+                      type: array
+                      description: List of posts created by the user.
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: Unique ID of the post.
+                            example: "post123"
+                          postUrl:
+                            type: string
+                            description: Signed URL for the post.
+                            example: "https://example.com/signed-post-url"
+                          comments:
+                            type: array
+                            description: List of comments on the post.
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                  description: Unique ID of the comment.
+                                  example: "comment123"
+                                text:
+                                  type: string
+                                  description: The comment text.
+                                  example: "Nice post!"
+                          commentsCount:
+                            type: string
+                            description: Number of comments on the post.
+                            example: "10"
+                    postsCount:
+                      type: string
+                      description: Number of posts by the user.
+                      example: "5"
+                    highlights:
+                      type: array
+                      description: List of highlights created by the user.
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: Unique ID of the highlight.
+                            example: "highlight123"
+                          highlightUrl:
+                            type: string
+                            description: Signed URL for the highlight.
+                            example: "https://example.com/signed-highlight-url"
+                    followersCount:
+                      type: string
+                      description: Number of followers for the user.
+                      example: "100"
+                    followingCount:
+                      type: string
+                      description: Number of users the user is following.
+                      example: "50"
+        500:
+          description: Failed to fetch users due to an internal error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message.
+                    example: "Failed to fetch users"
+                  details:
+                    type: object
+                    description: Detailed error information.
+
+    # Create a new user
+    post:
+      tags:
+        - User Controller
+      description: Create a new user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                fullName:
+                  type: string
+                  example: John Doe
+                bio:
+                  type: string
+                  example: Travel enthusiast.
+      responses:
+        201:
+          description: User created successfully.
+        500:
+          description: Internal server error.
+
+  # Update bio by user ID
+  /user/{userId}/bio:
+    put:
+      tags:
+        - User Controller
+      description: Update the bio of a user by their user ID.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The ID of the user whose bio will be updated.
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bio:
+                  type: string
+      responses:
+        200:
+          description: Bio updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Bio updated"
+        400:
+          description: Bad request if the bio is empty or not provided.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Bad Request"
+        404:
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "User Not Found"
+        500:
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to update user"
+                  details:
+                    type: string
+                    example: "Detailed error message here."
+
+  # Upload profile image
+  /user/{userId}/profileImage:
+    put:
+      tags:
+        - User Controller
+      description: Upload and update a user's profile image.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The ID of the user whose profile image will be updated.
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The profile image file to upload.
+      responses:
+        200:
+          description: Profile picture updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Profile picture updated"
+        400:
+          description: Bad request if no file is uploaded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Bad Request"
+        404:
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User not found"
+        500:
+          description: Internal server error if the image upload or update fails.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to upload image"
+                  details:
+                    type: string
+                    example: "Detailed error message here."
+
+  # Follow/Unfollow user
+  /user/{followedBy}/follow/{followedTo}:
+    put:
+      tags:
+        - User Controller
+      description: Follow or unfollow a user. If already following, it will unfollow, otherwise, it will follow.
+      parameters:
+        - name: followedBy
+          in: path
+          required: true
+          description: The ID of the user who is following or unfollowing.
+          schema:
+            type: integer
+        - name: followedTo
+          in: path
+          required: true
+          description: The ID of the user who is being followed or unfollowed.
+          schema:
+            type: integer
+      responses:
+        200:
+          description: The user has been followed or unfollowed successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User 123 is now following User 456"
+        404:
+          description: One or both users not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User not found"
+        500:
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unknown error occurred"
+
+  # Highlight
+  # Controller
+
+
+  /highlight/{userId}:
+
+    # Get all highlights by user
+    get:
+      tags:
+        - Highlight Controller
+      description: Retrieve all highlights for a user.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The ID of the user whose highlights are being retrieved.
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Highlights retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    userId:
+                      type: integer
+                      example: 123
+                    highlightUrl:
+                      type: string
+                      example: "https://example.com/highlight.jpg"
+                    title:
+                      type: string
+                      example: "Vacation Highlights"
+        404:
+          description: User not found or no highlights available.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User not found"
+        500:
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to fetch highlights"
+
+
+    # Create a new highlight
+    post:
+      tags:
+        - Highlight Controller
+      description: Upload a new highlight image for a user.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The ID of the user for whom the highlight is being created.
+          schema:
+            type: integer
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "Vacation Highlights"
+                image:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: Highlight created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Highlight created successfully"
+        400:
+          description: Bad request (missing body or file).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Bad Request"
+        404:
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User not found"
+        500:
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to upload image"
+
+  /highlight/{userId}/{highlightId}:
+
+    # Delete highlight by ID
+    delete:
+      tags:
+        - Highlight Controller
+      description: Delete a specific highlight of a user.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The ID of the user from whom the highlight will be deleted.
+          schema:
+            type: integer
+        - name: highlightId
+          in: path
+          required: true
+          description: The ID of the highlight to be deleted.
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Highlight deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Highlight deleted"
+        404:
+          description: Highlight not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Highlight not found"
+        500:
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unknown error occurred"
+
+    # Get highlight by ID
+    get:
+      tags:
+        - Highlight Controller
+      description: Retrieve a specific highlight of a user.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The ID of the user whose highlight is being retrieved.
+          schema:
+            type: integer
+        - name: highlightId
+          in: path
+          required: true
+          description: The ID of the highlight to retrieve.
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Highlight retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 456
+                  userId:
+                    type: integer
+                    example: 123
+                  highlightUrl:
+                    type: string
+                    example: "https://example.com/highlight.jpg"
+                  title:
+                    type: string
+                    example: "Vacation Highlights"
+        404:
+          description: Highlight not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Highlight not found"
+        500:
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to fetch highlight"
+
+  # Post
+  # Controller
+
+  #Like/Unlike a comment
+  /post/{userId}/likeComment/{commentId}:
+    post:
+      summary: Like or unlike a comment
+      tags:
+        - Post Controller
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user liking or unliking the comment.
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the comment being liked or unliked.
+      responses:
+        200:
+          description: Comment liked or unliked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Liked"
+        404:
+          description: Comment not found
+        500:
+          description: Server error
+
+  /post/{userId}/comment/{postId}:
+    post:
+      summary: Add a comment to a post
+      tags:
+        - Post Controller
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user adding the comment.
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the post being commented on.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+      responses:
+        201:
+          description: Comment added successfully
+        400:
+          description: Bad request (missing or empty comment)
+        404:
+          description: Post not found
+        500:
+          description: Server error
+
+  /post/{userId}/like/{postId}:
+    post:
+      summary: Like or unlike a post
+      tags:
+        - Post Controller
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user liking or unliking the post.
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the post being liked or unliked.
+      responses:
+        200:
+          description: Post liked or unliked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Liked"
+        404:
+          description: Post not found
+        500:
+          description: Server error
+
+  /post/{userId}:
+
+    # Get feed of posts
+    get:
+      summary: Get the feed of posts
+      tags:
+        - Post Controller
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user whose feed is to be fetched.
+      responses:
+        200:
+          description: Feed of posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    userId:
+                      type: integer
+                    caption:
+                      type: string
+                    postUrl:
+                      type: string
+                    comments:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          userId:
+                            type: integer
+                          comment:
+                            type: string
+                    commentsCount:
+                      type: string
+        500:
+          description: Server error
+
+    # Create a post
+    post:
+      summary: Create a post
+      tags:
+        - Post Controller
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user creating the post.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                caption:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+      responses:
+        201:
+          description: Post created successfully
+        400:
+          description: Bad request (no file provided)
+        404:
+          description: User not found
+        500:
+          description: Server error
+
+  /post/{userId}/{postId}:
+
+    # Update Caption
+    put:
+      summary: Update caption of a post
+      tags:
+        - Post Controller
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user updating the caption.
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the post whose caption is being updated.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                caption:
+                  type: string
+      responses:
+        200:
+          description: Caption updated successfully
+        400:
+          description: Bad request (missing caption)
+        404:
+          description: Post not found
+        500:
+          description: Server error
+
+    # Delete a post
+    delete:
+      summary: Delete a post
+      tags:
+        - Post Controller
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user deleting the post.
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the post to be deleted.
+      responses:
+        200:
+          description: Post deleted successfully
+        404:
+          description: Post not found
+        500:
+          description: Server error
+
+  # Get post by ID
+  /post/{postId}:
+    get:
+      summary: Get a post by its ID
+      tags:
+        - Post Controller
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the post to be fetched.
+      responses:
+        200:
+          description: Post found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  userId:
+                    type: integer
+                  caption:
+                    type: string
+                  postUrl:
+                    type: string
+                  comments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        userId:
+                          type: integer
+                        comment:
+                          type: string
+                  commentsCount:
+                    type: string
+        404:
+          description: Post not found
+        500:
+          description: Server error
+
+  # Get all posts by user
+  /post/all/{userId}:
+    get:
+      summary: Get all posts of a user
+      tags:
+        - Post Controller
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user whose posts are to be fetched.
+      responses:
+        200:
+          description: List of posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    userId:
+                      type: integer
+                    caption:
+                      type: string
+                    postUrl:
+                      type: string
+                    comments:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          userId:
+                            type: integer
+                          comment:
+                            type: string
+                    commentsCount:
+                      type: string
+        500:
+          description: Server error

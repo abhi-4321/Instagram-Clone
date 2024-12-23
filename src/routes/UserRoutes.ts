@@ -1,4 +1,4 @@
-import { Router } from "express"
+import {Router} from "express"
 import multer from "../util/multer"
 import userController from "../controller/UserController"
 import followController from "../controller/FollowController"
@@ -17,13 +17,6 @@ router.post("/", userController.addUser)
 // All Users
 router.get("/", userController.getAllUsers)
 
-/**
- * @swagger
- * /{userId}:
- *   get:
- *     summary: Retrieve user by userId.
- *     description: Retrieve user by userId.
- */
 // Get User
 router.get("/:userId", userController.getUserById)
 

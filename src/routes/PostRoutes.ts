@@ -13,7 +13,7 @@ router.post("/:userId/comment/:postId", postController.comment)
 // Like Post
 router.post("/:userId/like/:postId", postController.likePost)
 
-// Feed 
+// Feed
 router.get("/:userId", postController.getFeed)
 
 // Create Post
@@ -25,10 +25,10 @@ router.delete('/:userId/:postId', postController.deletePost)
 // Get Post
 router.get("/:postId", postController.getPostById)
 
-// All Posts 
+// All Posts
 router.get("/all/:userId", postController.getAllPosts)
 
-// Update Caption 
+// Update Caption
 router.put("/:userId/:postId", postController.updateCaption)
 
 export default router

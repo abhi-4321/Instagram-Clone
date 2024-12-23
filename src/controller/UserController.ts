@@ -167,6 +167,7 @@ const getAllUsers = async (req: Request, res: Response) => {
 }
 
 const getUserById = async (req: Request, res: Response) => {
+
     try {
         const userId = parseInt(req.params.userId)
         const user = await User.findOne({ id: userId })

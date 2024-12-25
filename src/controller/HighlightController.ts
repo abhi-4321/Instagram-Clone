@@ -49,7 +49,7 @@ const createHighlight = async (req: Request, res: Response) => {
         await highlight.save()
 
         res.status(200).json({ message: "Highlight created successfully" })
-    } catch (error) {
+    } catch (error: any) {
         res.status(500).json({ error: "Failed to upload image", details: error })
     }
 }
@@ -76,12 +76,12 @@ const deleteHighlight = async (req: Request, res: Response) => {
         const deleteHighlight = await highlight?.deleteOne()
 
         if (!deleteHighlight) {
-            res.status(500).send({ message: "Unknown error occured" })
+            res.status(500).send({ message: "Unknown error occurred" })
         } else {
             res.status(200).send({ message: "Highlight deleted" })
         }
     } catch (error: any) {
-        
+
     }
 }
 

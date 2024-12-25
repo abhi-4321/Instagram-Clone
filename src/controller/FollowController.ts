@@ -15,7 +15,7 @@ const follow = async (req: Request, res: Response) => {
             return
         }
 
-        var message: string = ""
+        let message: string = ""
 
         if (followKarneWala.followingList.includes(followedTo) && followHoneWala.followersList.includes(followedBy)) {
 
@@ -29,7 +29,7 @@ const follow = async (req: Request, res: Response) => {
             followKarneWala.followingList.push(followedTo)
             followHoneWala.followersList.push(followedBy)
 
-            message = `User ${followedBy} is now following User ${followedTo}` 
+            message = `User ${followedBy} is now following User ${followedTo}`
         }
 
         const res1 = await followKarneWala.save()
@@ -37,8 +37,8 @@ const follow = async (req: Request, res: Response) => {
 
         if (!res1 || !res2) {
             throw new Error("Unknown error occured")
-        } 
-        
+        }
+
         res.status(200).json({ message: message })
 
     } catch (error: any) {

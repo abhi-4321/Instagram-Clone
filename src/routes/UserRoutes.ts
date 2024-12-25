@@ -5,6 +5,9 @@ import followController from "../controller/FollowController"
 
 const router = Router()
 
+// Change Visibility
+router.patch("/:userId/changeVisibility", userController.changeVisibility)
+
 // Follow-Unfollow User
 router.post("/:followedBy/follow/:followedTo", followController.follow)
 

@@ -15,6 +15,54 @@ paths:
   # User
   # Controller
 
+  # Change visibility of account
+  /user/{userId}/changeVisibility:
+    patch:
+      summary: Change the visibility of a user account
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          description: The ID of the user whose visibility is being changed.
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Success response when visibility is toggled.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Account set to public"
+        404:
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User not found"
+        500:
+          description: Server error while changing visibility.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to change visibility"
+                  details:
+                    type: object
+                    example: { }
+
   /user/{userId}:
     # Get user details by ID
     get:

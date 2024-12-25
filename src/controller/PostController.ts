@@ -1,11 +1,12 @@
-import { Request, Response } from "express"
-import { User } from "../model/User"
-import { Post } from '../model/Post'
-import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
+import {Request, Response} from "express"
+import {User} from "../model/User"
+import {Post} from '../model/Post'
+import {DeleteObjectCommand, GetObjectCommand, PutObjectCommand} from "@aws-sdk/client-s3"
 import crypto from 'crypto'
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
+import {getSignedUrl} from "@aws-sdk/s3-request-presigner"
 import client from "../util/s3Client"
-import { Comment } from "../model/Comment"
+import {Comment} from "../model/Comment"
+import {FollowEntry} from "../model/Followers"
 
 // Image Name Generator
 const randomImageName = () => crypto.randomBytes(32).toString('hex')
@@ -16,34 +17,34 @@ const likeComment = async (req: Request, res: Response) => {
         const userId = parseInt(req.params.userId)
         const commentId = parseInt(req.params.commentId)
 
-        const comment = await Comment.findOne({ id: commentId })
+        const comment = await Comment.findOne({id: commentId})
 
         if (!comment) {
-            res.status(404).json({ message: "Comment not found" })
+            res.status(404).json({message: "Comment not found"})
             return
         }
 
         comment.likedBy = comment.likedBy ?? []
 
-        var message: string
+        let message: string
 
         // Remove Like
         if (comment.likedBy.includes(userId)) {
             comment.likedBy = comment.likedBy.filter(it => it != userId)
-            message = "Unliked"            
+            message = "Unliked"
         }
         // Add Like
         else {
             comment.likedBy.push(userId)
-            message = "Liked"  
+            message = "Liked"
         }
-        
+
         comment.likesCount = comment.likedBy.length.toString()
         await comment.save()
-        res.status(200).json({ message: message })
+        res.status(200).json({message: message})
 
-    } catch (error) {
-        
+    } catch (error: any) {
+
     }
 }
 
@@ -55,18 +56,18 @@ const comment = async (req: Request, res: Response) => {
         const comment = req.body.comment
 
         if (!comment || comment == "") {
-            res.status(400).json({ message: "Bad Request" })
+            res.status(400).json({message: "Bad Request"})
             return
         }
 
-        const post = await Post.findOne({ id: postId })
+        const post = await Post.findOne({id: postId})
 
         if (!post) {
-            res.status(404).json({ message: "Post not found" })
+            res.status(404).json({message: "Post not found"})
             return
         }
 
-        const count = await Comment.countDocuments({ postId: postId })
+        const count = await Comment.countDocuments({postId: postId})
 
         const commentModel = new Comment({
             id: count + 1,
@@ -78,13 +79,13 @@ const comment = async (req: Request, res: Response) => {
         const savedComment = await commentModel.save()
 
         if (!savedComment) {
-            throw new Error("Unkown error occured")
+            throw new Error("Unknown error occured")
         } else {
-            res.status(201).json({ message: "Comment added" })
+            res.status(201).json({message: "Comment added"})
         }
 
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to add comment', details: error })
+    } catch (error: any) {
+        res.status(500).json({error: 'Failed to add comment', details: error})
     }
 }
 
@@ -94,15 +95,15 @@ const likePost = async (req: Request, res: Response) => {
         const userId = parseInt(req.params.userId)
         const postId = parseInt(req.params.postId)
 
-        const post = await Post.findOne({ id: postId })
+        const post = await Post.findOne({id: postId})
 
         if (!post) {
-            res.status(404).json({ message: "Post not found" })
+            res.status(404).json({message: "Post not found"})
             return
         }
 
         post.likedBy = post.likedBy ?? []
-        var message: string
+        let message: string
 
         // Remove Like
         if (post.likedBy.includes(userId)) {
@@ -114,20 +115,35 @@ const likePost = async (req: Request, res: Response) => {
             post.likedBy.push(userId)
             message = "Liked"
         }
-        
+
         post.likesCount = post.likedBy.length.toString()
         await post.save()
-        res.status(200).json({ message: message })
-    
+        res.status(200).json({message: message})
+
     } catch (error: any) {
-        res.status(500).json({ error: 'Failed to like post', details: error })
+        res.status(500).json({error: 'Failed to like post', details: error})
     }
 }
 
 const getFeed = async (req: Request, res: Response) => {
     try {
         const userId = parseInt(req.params.userId)
-        const posts = await Post.find({ userId: { $ne: userId } })
+
+        const followedAccounts: number[] = (await FollowEntry.findOne({
+            userId: userId
+        }).select('followingList'))?.followingList ?? []
+
+        const users = await User.find({
+            id: { $ne: userId },
+            $or: [
+                { private: false }, // Public accounts
+                { private: true, id: { $in: followedAccounts } } // Private accounts followed by the user
+            ]
+        }).select('id')
+
+        const listOfUsers: number[] = users.map(user => user.id)
+
+        const posts = await Post.find({userId: {$in: listOfUsers}})
 
         for (const post of posts) {
             const getObjectParams = {
@@ -136,10 +152,10 @@ const getFeed = async (req: Request, res: Response) => {
             }
 
             const command = new GetObjectCommand(getObjectParams)
-            const url = await getSignedUrl(client, command, { expiresIn: 3600 })
+            const url = await getSignedUrl(client, command, {expiresIn: 3600})
             post.postUrl = url
-            
-            const comments = await Comment.find({ postId: post.id })
+
+            const comments = await Comment.find({postId: post.id})
             post.comments = comments
             post.commentsCount = post.comments.length.toString()
         }
@@ -147,21 +163,21 @@ const getFeed = async (req: Request, res: Response) => {
         res.status(200).json(posts)
 
     } catch (error: any) {
-        res.status(500).json({ error: 'Failed to fetch posts', details: error })
+        res.status(500).json({error: 'Failed to fetch posts', details: error})
     }
 }
 
 const createPost = async (req: Request, res: Response) => {
     try {
         if (!req.file) {
-            res.status(400).json({ message: "Bad Request" })
+            res.status(400).json({message: "Bad Request"})
             return
         }
         const userId = parseInt(req.params.userId)
-        const user = await User.findOne({ id: userId })
+        const user = await User.findOne({id: userId})
 
         if (!user) {
-            res.status(404).json({ message: "User not found" })
+            res.status(404).json({message: "User not found"})
             return
         }
         // Upload image to S3 Bucket
@@ -177,7 +193,7 @@ const createPost = async (req: Request, res: Response) => {
         const command = new PutObjectCommand(params)
         await client.send(command)
 
-        const count = await Post.countDocuments({}, { hint: "_id_" })
+        const count = await Post.countDocuments({}, {hint: "_id_"})
 
         const post = new Post({
             id: count + 1,
@@ -191,11 +207,11 @@ const createPost = async (req: Request, res: Response) => {
         if (!createdPost) {
             throw new Error("Unknown error occured")
         } else {
-            res.status(201).json({ message: "Post created successfully" })
+            res.status(201).json({message: "Post created successfully"})
         }
-        
-    } catch (error) {
-        res.status(500).json({ error: "Failed to create post", details: error })
+
+    } catch (error: any) {
+        res.status(500).json({error: "Failed to create post", details: error})
     }
 }
 
@@ -204,10 +220,10 @@ const deletePost = async (req: Request, res: Response) => {
         const userId = parseInt(req.params.userId)
         const postId = parseInt(req.params.postId)
 
-        const post = await Post.findOne({ id: postId, userId: userId })
+        const post = await Post.findOne({id: postId, userId: userId})
 
         if (!post) {
-            res.status(404).send({ message: "Post not found" })
+            res.status(404).send({message: "Post not found"})
             return
         }
 
@@ -221,24 +237,24 @@ const deletePost = async (req: Request, res: Response) => {
 
         const deletedPost = await post.deleteOne()
 
-        if (!deletePost) {
-            res.status(500).send({ message: "Unkown error occured" })
+        if (!deletedPost) {
+            res.status(500).send({message: "Unkown error occured"})
         } else {
-            res.status(200).send({ message: "Post deleted" })
+            res.status(200).send({message: "Post deleted"})
         }
 
     } catch (error: any) {
-        res.status(500).json({ error: 'Failed to delete post', details: error })
+        res.status(500).json({error: 'Failed to delete post', details: error})
     }
 }
 
 const getPostById = async (req: Request, res: Response) => {
     try {
         const postId = parseInt(req.params.postId)
-        const post = await Post.findOne({ id: postId })
+        const post = await Post.findOne({id: postId})
 
         if (!post) {
-            res.status(404).json({ error: 'Post not found' })
+            res.status(404).json({error: 'Post not found'})
         } else {
             const getObjectParams = {
                 Bucket: process.env.BUCKET_NAME!!,
@@ -246,24 +262,24 @@ const getPostById = async (req: Request, res: Response) => {
             }
 
             const command = new GetObjectCommand(getObjectParams)
-            const url = await getSignedUrl(client, command, { expiresIn: 3600 })
+            const url = await getSignedUrl(client, command, {expiresIn: 3600})
             post.postUrl = url
-            
-            const comments = await Comment.find({ postId: post.id })
+
+            const comments = await Comment.find({postId: post.id})
             post.comments = comments
             post.commentsCount = post.comments.length.toString()
 
             res.status(200).json(post)
         }
     } catch (error: any) {
-        res.status(500).json({ error: 'Failed to fetch post', details: error })
+        res.status(500).json({error: 'Failed to fetch post', details: error})
     }
 }
 
 const getAllPosts = async (req: Request, res: Response) => {
     try {
         const userId = parseInt(req.params.userId)
-        const posts = await Post.find({ userId: userId })
+        const posts = await Post.find({userId: userId})
 
         for (const post of posts) {
             const getObjectParams = {
@@ -272,10 +288,10 @@ const getAllPosts = async (req: Request, res: Response) => {
             }
 
             const command = new GetObjectCommand(getObjectParams)
-            const url = await getSignedUrl(client, command, { expiresIn: 3600 })
+            const url = await getSignedUrl(client, command, {expiresIn: 3600})
             post.postUrl = url
-            
-            const comments = await Comment.find({ postId: post.id })
+
+            const comments = await Comment.find({postId: post.id})
             post.comments = comments
             post.commentsCount = post.comments.length.toString()
         }
@@ -283,7 +299,7 @@ const getAllPosts = async (req: Request, res: Response) => {
         res.status(200).json(posts)
 
     } catch (error: any) {
-        res.status(500).json({ error: 'Failed to fetch posts', details: error })
+        res.status(500).json({error: 'Failed to fetch posts', details: error})
     }
 }
 
@@ -294,18 +310,18 @@ const updateCaption = async (req: Request, res: Response) => {
         const caption = req.body.caption
 
         if (!caption) {
-            res.status(400).json({ error: "Bad Request" })
+            res.status(400).json({error: "Bad Request"})
             return
         }
-        const post = await Post.findOneAndUpdate({ id: postId, userId: userId }, { caption: caption }, { new: true })
+        const post = await Post.findOneAndUpdate({id: postId, userId: userId}, {caption: caption}, {new: true})
 
         if (!post) {
-            res.status(404).json({ error: "Post Not Found" })
+            res.status(404).json({error: "Post Not Found"})
         } else {
-            res.status(200).json({ message: "Caption updated" })
+            res.status(200).json({message: "Caption updated"})
         }
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to update caption', details: error })
+    } catch (error: any) {
+        res.status(500).json({error: 'Failed to update caption', details: error})
     }
 }
 

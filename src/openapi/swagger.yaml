@@ -12,8 +12,101 @@ info:
 
 paths:
 
+  # Follow
+  # Controller
+
+  # Get following List of User
+  /follow/{userId}/followingList:
+    get:
+      description: Get the following list of user.
+      tags:
+        - Follow Controller
+      parameters:
+        - name: userId
+          in: path
+          description: The ID of the user to get the following list of.
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Following List retrieved successfully.
+        404:
+          description: User not found.
+        500:
+          description: Internal server error.
+
+  # Get followers List of user
+  /follow/{userId}/followersList:
+    get:
+      description: Get the followers list of user.
+      tags:
+        - Follow Controller
+      parameters:
+        - name: userId
+          in: path
+          description: The ID of the user to get the followers list of.
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Followers List retrieved successfully.
+        404:
+          description: User not found.
+        500:
+          description: Internal server error.
+
   # User
   # Controller
+
+  # Change visibility of account
+  /user/{userId}/changeVisibility:
+    patch:
+      description: Change the visibility of a user account
+      tags:
+        - User Controller
+      parameters:
+        - name: userId
+          in: path
+          description: The ID of the user whose visibility is being changed.
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Success response when visibility is toggled.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Account set to public"
+        404:
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User not found"
+        500:
+          description: Server error while changing visibility.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to change visibility"
+                  details:
+                    type: object
+                    example: { }
 
   /user/{userId}:
     # Get user details by ID
@@ -348,7 +441,7 @@ paths:
 
   # Follow/Unfollow user
   /user/{followedBy}/follow/{followedTo}:
-    put:
+    post:
       tags:
         - User Controller
       description: Follow or unfollow a user. If already following, it will unfollow, otherwise, it will follow.
@@ -642,7 +735,7 @@ paths:
   #Like/Unlike a comment
   /post/{userId}/likeComment/{commentId}:
     post:
-      summary: Like or unlike a comment
+      description: Like or unlike a comment
       tags:
         - Post Controller
       parameters:
@@ -676,7 +769,7 @@ paths:
 
   /post/{userId}/comment/{postId}:
     post:
-      summary: Add a comment to a post
+      description: Add a comment to a post
       tags:
         - Post Controller
       parameters:
@@ -713,7 +806,7 @@ paths:
 
   /post/{userId}/like/{postId}:
     post:
-      summary: Like or unlike a post
+      description: Like or unlike a post
       tags:
         - Post Controller
       parameters:
@@ -749,7 +842,7 @@ paths:
 
     # Get feed of posts
     get:
-      summary: Get the feed of posts
+      description: Get the feed of posts
       tags:
         - Post Controller
       parameters:
@@ -795,7 +888,7 @@ paths:
 
     # Create a post
     post:
-      summary: Create a post
+      description: Create a post
       tags:
         - Post Controller
       parameters:
@@ -831,7 +924,7 @@ paths:
 
     # Update Caption
     put:
-      summary: Update caption of a post
+      description: Update caption of a post
       tags:
         - Post Controller
       parameters:
@@ -868,7 +961,7 @@ paths:
 
     # Delete a post
     delete:
-      summary: Delete a post
+      description: Delete a post
       tags:
         - Post Controller
       parameters:
@@ -895,7 +988,7 @@ paths:
   # Get post by ID
   /post/{postId}:
     get:
-      summary: Get a post by its ID
+      description: Get a post by its ID
       tags:
         - Post Controller
       parameters:
@@ -942,7 +1035,7 @@ paths:
   # Get all posts by user
   /post/all/{userId}:
     get:
-      summary: Get all posts of a user
+      description: Get all posts of a user
       tags:
         - Post Controller
       parameters:

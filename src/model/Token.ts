@@ -10,4 +10,4 @@ const tokenSchema = new mongoose.Schema({
     token: { type: String, required: true, unique: true },
 })
 
-export const Token = mongoose.model("Token", tokenSchema, "token")
+export const Token = mongoose.model("Token", tokenSchema, "tokens")

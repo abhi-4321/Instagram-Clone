@@ -5,15 +5,16 @@ import FollowRoutes from "./routes/FollowRoutes"
 import dotenv from 'dotenv'
 import HighlightRoute from "./routes/HighlightRoutes"
 import AuthRoutes from "./routes/AuthRoutes";
+import authMiddleware from "./util/verifyToken";
 
 dotenv.config()
 
 const route = Router()
 
-route.use('/user', UserRoutes) // User Routes
-route.use('/post', PostRoutes) // Post Routes
-route.use('/highlight', HighlightRoute) // Highlight Routes
-route.use('/follow', FollowRoutes) // Follow Routes
+route.use('/user', authMiddleware, UserRoutes) // User Routes
+route.use('/post', authMiddleware, PostRoutes) // Post Routes
+route.use('/highlight', authMiddleware, HighlightRoute) // Highlight Routes
+route.use('/follow', authMiddleware, FollowRoutes) // Follow Routes
 route.use('/auth', AuthRoutes) // Auth Routes
 
 // Test Route

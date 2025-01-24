@@ -9,6 +9,9 @@ import {Highlight} from "../model/Highlight"
 import {connection} from "mongoose"
 import {Comment} from "../model/Comment"
 import {FollowEntry} from "../model/Followers"
+import jwt from 'jsonwebtoken'
+
+const JWT_SECRET = 'chintapakdumdum';
 
 // Image Name Generator
 const randomImageName = () => crypto.randomBytes(32).toString('hex')
@@ -35,7 +38,7 @@ const changeVisibility = async (req: Request, res: Response) => {
         }
         await user.save()
 
-        res.status(200).json({message : message})
+        res.status(200).json({message: message})
     } catch (error: any) {
         res.status(500).json({error: "Failed to change visibility", details: error})
     }
@@ -83,33 +86,24 @@ const uploadProfileImage = async (req: Request, res: Response) => {
     }
 }
 
-const addUser = async (req: Request, res: Response) => {
+const addUserDetails = async (req: Request, res: Response) => {
     try {
+        // Proceed with user creation
+        const userId = parseInt(req.params.userId)
         const body = req.body
-        const count = await User.countDocuments({}, {hint: "_id_"})
+        const exists = await User.findOne({id: userId})
 
-        const user = new User({
-            id: count + 1,
-            username: body.username,
-            fullName: body.fullName,
-            bio: body.bio,
-            highlights: [],
-            posts: []
-        })
+        if (exists) {
+            res.status(400).json({error: "Username already exists"})
+            return
+        }
 
-        const savedUser = await user.save()
+        const savedUser = await User.findOneAndUpdate({id: userId}, {fullName: body.fullName, bio: body.bio}, {new: true})
 
-        const followEntry = new FollowEntry({
-            userId: savedUser.id,
-            followingList: [],
-            followersList: []
-        })
-
-        await followEntry.save()
-
+        // Respond with the newly created user
         res.status(201).json(savedUser)
     } catch (error: any) {
-        res.status(500).json({error: "Failed to create user", details: error})
+        res.status(500).json({error: "Failed to create user", details: error.message})
     }
 }
 
@@ -344,7 +338,7 @@ const deleteUser = async (req: Request, res: Response) => {
 
 export default {
     uploadProfileImage,
-    addUser,
+    addUserDetails,
     getAllUsers,
     getUserById,
     updateBio,

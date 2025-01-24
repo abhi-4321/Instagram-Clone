@@ -12,6 +12,158 @@ info:
 
 paths:
 
+  # Auth
+  # Controller
+
+  # Login
+  /auth/login:
+    post:
+      description: Authenticates a user and returns a JWT token.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: "testuser"
+                  description: "The username of the user."
+                password:
+                  type: string
+                  example: "password123"
+                  description: "The password of the user."
+              required:
+                - username
+                - password
+      responses:
+        201:
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Login successful"
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        401:
+          description: Invalid username or password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid username or password"
+        404:
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid Username or password"
+        500:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to login"
+                  details:
+                    type: string
+
+  # Register
+  /auth/register:
+    post:
+      summary: User registration
+      description: Registers a new user, hashes the password, and returns a JWT token.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: "newuser"
+                  description: "The username of the user."
+                password:
+                  type: string
+                  example: "securepassword123"
+                  description: "The password for the user."
+              required:
+                - username
+                - password
+      responses:
+        201:
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      username:
+                        type: string
+                        example: "newuser"
+                      highlights:
+                        type: array
+                        items:
+                          type: string
+                        example: [ ]
+                      posts:
+                        type: array
+                        items:
+                          type: string
+                        example: [ ]
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        400:
+          description: Username already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Username already exists"
+        500:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to create user"
+                  details:
+                    type: string
+
   # Follow
   # Controller
 
@@ -276,7 +428,8 @@ paths:
                     type: object
                     description: Detailed error information.
 
-    # Create a new user
+  # Add details in a new user
+  /user/details/{userId}:
     post:
       tags:
         - User Controller
@@ -288,9 +441,6 @@ paths:
             schema:
               type: object
               properties:
-                username:
-                  type: string
-                  example: johndoe
                 fullName:
                   type: string
                   example: John Doe
@@ -495,7 +645,6 @@ paths:
 
 
   /highlight/{userId}:
-
     # Get all highlights by user
     get:
       tags:

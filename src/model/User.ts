@@ -5,6 +5,7 @@ import { Highlight } from "./Highlight"
 export interface User extends Document {
   id: number
   username: string
+  password: string
   profileImageUrl: string
   postsCount: string
   followersCount: string
@@ -17,14 +18,15 @@ export interface User extends Document {
 }
 
 const userSchema = new Schema<User>({
-  id: { type: Number, required: true },
-  username: { type: String, required: true },
+  id: { type: Number, unique: true, required: true },
+  username: { type: String, unique: true, required: true },
+  password: { type: String, required: true },
   profileImageUrl: { type : String, default: "" },
   postsCount: { type: String, default: "" },
   followersCount: { type: String, default: "" },
   followingCount: { type: String, default: "" },
-  fullName: { type: String, required: true },
-  bio: { type: String, required: true },
+  fullName: { type: String, default: "" },
+  bio: { type: String, default: "" },
   highlights: [],
   posts: [],
   private: { type: Boolean, default: false }

@@ -2,31 +2,32 @@ import {Router} from "express"
 import multer from "../util/multer"
 import userController from "../controller/UserController"
 import followController from "../controller/FollowController"
+import authMiddleware from "../util/verifyToken";
 
 const router = Router()
 
 // Change Visibility
-router.patch("/:userId/changeVisibility", userController.changeVisibility)
+router.patch("/:userId/changeVisibility", authMiddleware, userController.changeVisibility)
 
 // Follow-Unfollow User
-router.post("/:followedBy/follow/:followedTo", followController.follow)
+router.post("/:followedBy/follow/:followedTo", authMiddleware,followController.follow)
 
 // Profile Image
-router.post("/:userId/profileImage", multer.single('image'), userController.uploadProfileImage)
+router.post("/:userId/profileImage", multer.single('image'), authMiddleware, userController.uploadProfileImage)
 
-// Add User
-router.post("/", userController.addUser)
+// Add User Details
+router.post("/details/:userId", authMiddleware, userController.addUserDetails)
 
 // All Users
-router.get("/", userController.getAllUsers)
+router.get("/", authMiddleware, userController.getAllUsers)
 
 // Get User
-router.get("/:userId", userController.getUserById)
+router.get("/:userId", authMiddleware, userController.getUserById)
 
 // Update Bio
-router.put("/:userId", userController.updateBio)
+router.put("/:userId", authMiddleware, userController.updateBio)
 
 // Delete User
-router.delete("/:userId", userController.deleteUser)
+router.delete("/:userId", authMiddleware, userController.deleteUser)
 
 export default router

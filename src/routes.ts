@@ -4,6 +4,7 @@ import PostRoutes from "./routes/PostRoutes"
 import FollowRoutes from "./routes/FollowRoutes"
 import dotenv from 'dotenv'
 import HighlightRoute from "./routes/HighlightRoutes"
+import AuthRoutes from "./routes/AuthRoutes";
 
 dotenv.config()
 
@@ -13,6 +14,7 @@ route.use('/user', UserRoutes) // User Routes
 route.use('/post', PostRoutes) // Post Routes
 route.use('/highlight', HighlightRoute) // Highlight Routes
 route.use('/follow', FollowRoutes) // Follow Routes
+route.use('/auth', AuthRoutes) // Auth Routes
 
 // Test Route
 route.get('/', (req: Request, res: Response) => {

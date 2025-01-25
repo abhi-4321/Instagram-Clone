@@ -17,7 +17,7 @@ const bucketName = process.env.BUCKET_NAME || 'myBucketName'
 
 const changePassword = async (req: Request, res: Response) => {
     try {
-        const userId = parseInt(req.params.userId)
+        const userId = req.userId
         const password = req.body.password
         const user = await User.findOne({id: userId})
 
@@ -37,7 +37,7 @@ const changePassword = async (req: Request, res: Response) => {
 
 const changeVisibility = async (req: Request, res: Response) => {
     try {
-        const userId = parseInt(req.params.userId)
+        const userId = req.userId
         const user = await User.findOne({id: userId})
 
         if (!user) {
@@ -68,7 +68,7 @@ const uploadProfileImage = async (req: Request, res: Response) => {
             res.status(400).json({message: "Bad Request"})
             return
         }
-        const userId = parseInt(req.params.userId)
+        const userId = req.userId
         const user = await User.findOne({id: userId})
 
         if (!user) {
@@ -107,7 +107,7 @@ const uploadProfileImage = async (req: Request, res: Response) => {
 const addUserDetails = async (req: Request, res: Response) => {
     try {
         // Proceed with user creation
-        const userId = parseInt(req.params.userId)
+        const userId = req.userId
         const body = req.body
         const exists = await User.findOne({id: userId})
 
@@ -270,36 +270,13 @@ const getUserById = async (req: Request, res: Response) => {
     }
 }
 
-const updateBio = async (req: Request, res: Response) => {
-    try {
-        const userId = parseInt(req.params.userId)
-        const bio = req.body.bio
-
-        if (!bio || bio == "") {
-            res.status(400).json({error: "Bad Request"})
-            return
-        }
-
-        const user = await User.findOneAndUpdate({id: userId}, {bio: bio}, {new: true})
-
-        if (!user) {
-            res.status(404).json({error: "User Not Found"})
-        } else {
-            res.status(200).json({message: "Bio updated"})
-        }
-
-    } catch (error: any) {
-        res.status(500).json({error: 'Failed to update user', details: error})
-    }
-}
-
 const deleteUser = async (req: Request, res: Response) => {
     const session = await connection.startSession()
 
     try {
         session.startTransaction()
 
-        const userId = parseInt(req.params.userId)
+        const userId = req.userId
         const user = await User.findOne({id: userId})
 
         if (!user) {
@@ -362,7 +339,6 @@ export default {
     addUserDetails,
     getAllUsers,
     getUserById,
-    updateBio,
     deleteUser,
     changeVisibility,
     changePassword

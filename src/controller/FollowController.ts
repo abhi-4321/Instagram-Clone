@@ -3,7 +3,7 @@ import { FollowEntry } from "../model/Followers"
 
 const follow = async (req: Request, res: Response) => {
     try {
-        const followedBy = parseInt(req.params.followedBy)
+        const followedBy = req.userId
         const followedTo = parseInt(req.params.followedTo)
 
         if (followedBy == followedTo) {
@@ -52,7 +52,7 @@ const follow = async (req: Request, res: Response) => {
 
 const followersList = async (req: Request, res: Response) => {
     try {
-        const userId = parseInt(req.params.userId)
+        const userId = req.userId
         const entry = await FollowEntry.findOne({userId: userId})
 
         if (!entry) {
@@ -68,7 +68,7 @@ const followersList = async (req: Request, res: Response) => {
 
 const followingList = async (req: Request, res: Response) => {
     try {
-        const userId = parseInt(req.params.userId)
+        const userId = req.userId
         const entry = await FollowEntry.findOne({userId: userId})
 
         if (!entry) {

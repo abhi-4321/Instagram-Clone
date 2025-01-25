@@ -37,7 +37,7 @@ paths:
               properties:
                 username:
                   type: string
-                  example: "testuser"
+                  example: "newuser"
                   description: "The username of the user."
                 password:
                   type: string
@@ -112,7 +112,7 @@ paths:
                   description: "The username of the user."
                 password:
                   type: string
-                  example: "securepassword123"
+                  example: "password123"
                   description: "The password for the user."
               required:
                 - username
@@ -170,24 +170,17 @@ paths:
                   details:
                     type: string
 
-  # Follow
+  # User
   # Controller
 
   # Get following List of User
-  /follow/{userId}/followingList:
+  /follow/followingList:
     get:
       description: Get the following list of user.
       security:
         - BearerAuth: [ ]
       tags:
-        - Follow Controller
-      parameters:
-        - name: userId
-          in: path
-          description: The ID of the user to get the following list of.
-          required: true
-          schema:
-            type: integer
+        - User Controller
       responses:
         200:
           description: Following List retrieved successfully.
@@ -197,20 +190,13 @@ paths:
           description: Internal server error.
 
   # Get followers List of user
-  /follow/{userId}/followersList:
+  /follow/followersList:
     get:
       description: Get the followers list of user.
       security:
         - BearerAuth: [ ]
       tags:
-        - Follow Controller
-      parameters:
-        - name: userId
-          in: path
-          description: The ID of the user to get the followers list of.
-          required: true
-          schema:
-            type: integer
+        - User Controller
       responses:
         200:
           description: Followers List retrieved successfully.
@@ -219,24 +205,14 @@ paths:
         500:
           description: Internal server error.
 
-  # User
-  # Controller
-
   # Change visibility of account
-  /user/{userId}/changeVisibility:
+  /user/changeVisibility:
     patch:
       description: Change the visibility of a user account
       security:
         - BearerAuth: [ ]
       tags:
         - User Controller
-      parameters:
-        - name: userId
-          in: path
-          description: The ID of the user whose visibility is being changed.
-          required: true
-          schema:
-            type: integer
       responses:
         200:
           description: Success response when visibility is toggled.
@@ -272,20 +248,14 @@ paths:
                     type: object
                     example: { }
 
-  /user/{userId}:
+  /user:
     # Get user details by ID
     get:
       tags:
         - User Controller
       description: Get user details by ID.
       security:
-        - BearerAuth : []
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
+        - BearerAuth: [ ]
       responses:
         200:
           description: User details retrieved successfully.
@@ -343,7 +313,7 @@ paths:
                     type: string
                     example: "Detailed error message here."
 
-  /user:
+  /user/list:
     # Get all users
     get:
       tags:
@@ -447,7 +417,7 @@ paths:
                     description: Detailed error information.
 
   # Change Password
-  /user/{userId}/changePassword:
+  /user/changePassword:
     put:
       tags:
         - User Controller
@@ -478,7 +448,7 @@ paths:
           description: Internal server error.
 
   # Add details in a new user
-  /user/{userId}/details:
+  /user/details:
     put:
       tags:
         - User Controller
@@ -510,77 +480,8 @@ paths:
         500:
           description: Internal server error.
 
-  # Update bio by user ID
-  /user/{userId}/bio:
-    put:
-      tags:
-        - User Controller
-      description: Update the bio of a user by their user ID.
-      security:
-        - BearerAuth: [ ]
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          description: The ID of the user whose bio will be updated.
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                bio:
-                  type: string
-      responses:
-        200:
-          description: Bio updated successfully.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Bio updated"
-        400:
-          description: Bad request if the bio is empty or not provided.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Bad Request"
-        404:
-          description: User not found.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "User Not Found"
-        500:
-          description: Internal server error.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Failed to update user"
-                  details:
-                    type: string
-                    example: "Detailed error message here."
-
   # Upload profile image
-  /user/{userId}/profileImage:
+  /user/profileImage:
     put:
       tags:
         - User Controller
@@ -651,20 +552,14 @@ paths:
                     example: "Detailed error message here."
 
   # Follow/Unfollow user
-  /user/{followedBy}/follow/{followedTo}:
+  /user/follow/{followedTo}:
     post:
       tags:
-        - User Controller
+        - Follow Controller
       description: Follow or unfollow a user. If already following, it will unfollow, otherwise, it will follow.
       security:
         - BearerAuth: [ ]
       parameters:
-        - name: followedBy
-          in: path
-          required: true
-          description: The ID of the user who is following or unfollowing.
-          schema:
-            type: integer
         - name: followedTo
           in: path
           required: true
@@ -707,7 +602,7 @@ paths:
   # Controller
 
 
-  /highlight/{userId}:
+  /highlight:
     # Get all highlights by user
     get:
       tags:
@@ -715,13 +610,6 @@ paths:
       description: Retrieve all highlights for a user.
       security:
         - BearerAuth: [ ]
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          description: The ID of the user whose highlights are being retrieved.
-          schema:
-            type: integer
       responses:
         200:
           description: Highlights retrieved successfully.
@@ -773,13 +661,6 @@ paths:
       description: Upload a new highlight image for a user.
       security:
         - BearerAuth: [ ]
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          description: The ID of the user for whom the highlight is being created.
-          schema:
-            type: integer
       requestBody:
         content:
           multipart/form-data:
@@ -834,7 +715,7 @@ paths:
                     type: string
                     example: "Failed to upload image"
 
-  /highlight/{userId}/{highlightId}:
+  /highlight/{highlightId}:
 
     # Delete highlight by ID
     delete:
@@ -844,12 +725,6 @@ paths:
       security:
         - BearerAuth: [ ]
       parameters:
-        - name: userId
-          in: path
-          required: true
-          description: The ID of the user from whom the highlight will be deleted.
-          schema:
-            type: integer
         - name: highlightId
           in: path
           required: true
@@ -896,12 +771,6 @@ paths:
       security:
         - BearerAuth: [ ]
       parameters:
-        - name: userId
-          in: path
-          required: true
-          description: The ID of the user whose highlight is being retrieved.
-          schema:
-            type: integer
         - name: highlightId
           in: path
           required: true
@@ -953,20 +822,14 @@ paths:
   # Controller
 
   #Like/Unlike a comment
-  /post/{userId}/likeComment/{commentId}:
+  /post/likeComment/{commentId}:
     post:
       description: Like or unlike a comment
       tags:
         - Post Controller
       security:
-        - BearerAuth : []
+        - BearerAuth: [ ]
       parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: The ID of the user liking or unliking the comment.
         - name: commentId
           in: path
           required: true
@@ -989,20 +852,14 @@ paths:
         500:
           description: Server error
 
-  /post/{userId}/comment/{postId}:
+  /post/comment/{postId}:
     post:
       description: Add a comment to a post
       tags:
         - Post Controller
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: The ID of the user adding the comment.
         - name: postId
           in: path
           required: true
@@ -1028,20 +885,14 @@ paths:
         500:
           description: Server error
 
-  /post/{userId}/like/{postId}:
+  /post/like/{postId}:
     post:
       description: Like or unlike a post
       tags:
         - Post Controller
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: The ID of the user liking or unliking the post.
         - name: postId
           in: path
           required: true
@@ -1064,7 +915,7 @@ paths:
         500:
           description: Server error
 
-  /post/{userId}:
+  /post:
 
     # Get feed of posts
     get:
@@ -1072,14 +923,7 @@ paths:
       tags:
         - Post Controller
       security:
-        - BearerAuth: []
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: The ID of the user whose feed is to be fetched.
+        - BearerAuth: [ ]
       responses:
         200:
           description: Feed of posts
@@ -1120,14 +964,7 @@ paths:
       tags:
         - Post Controller
       security:
-        - BearerAuth: []
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: The ID of the user creating the post.
+        - BearerAuth: [ ]
       requestBody:
         required: true
         content:
@@ -1150,7 +987,7 @@ paths:
         500:
           description: Server error
 
-  /post/{userId}/{postId}:
+  /post/{postId}:
 
     # Update Caption
     put:
@@ -1158,14 +995,8 @@ paths:
       tags:
         - Post Controller
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: The ID of the user updating the caption.
         - name: postId
           in: path
           required: true
@@ -1197,7 +1028,7 @@ paths:
       tags:
         - Post Controller
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       parameters:
         - name: userId
           in: path
@@ -1219,14 +1050,13 @@ paths:
         500:
           description: Server error
 
-  # Get post by ID
-  /post/{postId}:
+    # Get post by ID
     get:
       description: Get a post by its ID
       tags:
         - Post Controller
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       parameters:
         - name: postId
           in: path
@@ -1269,20 +1099,13 @@ paths:
           description: Server error
 
   # Get all posts by user
-  /post/all/{userId}:
+  /post/all:
     get:
       description: Get all posts of a user
       tags:
         - Post Controller
       security:
-        - BearerAuth: []
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: The ID of the user whose posts are to be fetched.
+        - BearerAuth: [ ]
       responses:
         200:
           description: List of posts

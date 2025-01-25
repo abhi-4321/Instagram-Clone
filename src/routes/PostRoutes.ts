@@ -5,30 +5,30 @@ import postController from '../controller/PostController'
 const router = Router()
 
 // Like Comment
-router.post("/:userId/likeComment/:commentId", postController.likeComment)
+router.post("/likeComment/:commentId", postController.likeComment)
 
 // Comment
-router.post("/:userId/comment/:postId", postController.comment)
+router.post("/comment/:postId", postController.comment)
 
 // Like Post
-router.post("/:userId/like/:postId", postController.likePost)
+router.post("/like/:postId", postController.likePost)
 
 // Feed
-router.get("/:userId", postController.getFeed)
+router.get("/", postController.getFeed)
 
 // Create Post
-router.post("/:userId", multer.single('image'), postController.createPost)
+router.post("/", multer.single('image'), postController.createPost)
 
 // Delete Post
-router.delete('/:userId/:postId', postController.deletePost)
+router.delete('/:postId', postController.deletePost)
 
 // Get Post
 router.get("/:postId", postController.getPostById)
 
 // All Posts
-router.get("/all/:userId", postController.getAllPosts)
+router.get("/all", postController.getAllPosts)
 
 // Update Caption
-router.put("/:userId/:postId", postController.updateCaption)
+router.put("/:postId", postController.updateCaption)
 
 export default router

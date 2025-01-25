@@ -14,7 +14,7 @@ const bucketName = process.env.BUCKET_NAME || 'myBucketName'
 
 const likeComment = async (req: Request, res: Response) => {
     try {
-        const userId = parseInt(req.params.userId)
+        const userId = req.userId
         const commentId = parseInt(req.params.commentId)
 
         const comment = await Comment.findOne({id: commentId})
@@ -50,7 +50,7 @@ const likeComment = async (req: Request, res: Response) => {
 
 const comment = async (req: Request, res: Response) => {
     try {
-        const userId = parseInt(req.params.userId)
+        const userId = req.userId
         const postId = parseInt(req.params.postId)
 
         const comment = req.body.comment
@@ -92,7 +92,7 @@ const comment = async (req: Request, res: Response) => {
 const likePost = async (req: Request, res: Response) => {
     try {
 
-        const userId = parseInt(req.params.userId)
+        const userId = req.userId
         const postId = parseInt(req.params.postId)
 
         const post = await Post.findOne({id: postId})
@@ -127,8 +127,8 @@ const likePost = async (req: Request, res: Response) => {
 
 const getFeed = async (req: Request, res: Response) => {
     try {
-        const userId = parseInt(req.params.userId)
 
+        const userId = req.userId
         const followedAccounts: number[] = (await FollowEntry.findOne({
             userId: userId
         }).select('followingList'))?.followingList ?? []
@@ -173,7 +173,7 @@ const createPost = async (req: Request, res: Response) => {
             res.status(400).json({message: "Bad Request"})
             return
         }
-        const userId = parseInt(req.params.userId)
+        const userId = req.userId
         const user = await User.findOne({id: userId})
 
         if (!user) {
@@ -217,7 +217,7 @@ const createPost = async (req: Request, res: Response) => {
 
 const deletePost = async (req: Request, res: Response) => {
     try {
-        const userId = parseInt(req.params.userId)
+        const userId = req.userId
         const postId = parseInt(req.params.postId)
 
         const post = await Post.findOne({id: postId, userId: userId})
@@ -278,7 +278,7 @@ const getPostById = async (req: Request, res: Response) => {
 
 const getAllPosts = async (req: Request, res: Response) => {
     try {
-        const userId = parseInt(req.params.userId)
+        const userId = req.userId
         const posts = await Post.find({userId: userId})
 
         for (const post of posts) {
@@ -305,7 +305,7 @@ const getAllPosts = async (req: Request, res: Response) => {
 
 const updateCaption = async (req: Request, res: Response) => {
     try {
-        const userId = parseInt(req.params.userId)
+        const userId = req.userId
         const postId = parseInt(req.params.postId)
         const caption = req.body.caption
 

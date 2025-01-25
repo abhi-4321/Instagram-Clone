@@ -9,13 +9,31 @@ import {Highlight} from "../model/Highlight"
 import {connection} from "mongoose"
 import {Comment} from "../model/Comment"
 import {FollowEntry} from "../model/Followers"
-import jwt from 'jsonwebtoken'
-
-const JWT_SECRET = 'chintapakdumdum';
+import bcrypt from "bcrypt";
 
 // Image Name Generator
 const randomImageName = () => crypto.randomBytes(32).toString('hex')
 const bucketName = process.env.BUCKET_NAME || 'myBucketName'
+
+const changePassword = async (req: Request, res: Response) => {
+    try {
+        const userId = parseInt(req.params.userId)
+        const password = req.body.password
+        const user = await User.findOne({id: userId})
+
+        if (!user) {
+            res.status(404).json({message: "User not found"})
+            return
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10)
+        await User.findOneAndUpdate({id: userId}, {password: hashedPassword}, {new: true})
+
+        res.status(201).json({ message: "Password changed successfully." })
+    } catch (e: any) {
+        res.status(500).json({error: "Failed to change password", details: e})
+    }
+}
 
 const changeVisibility = async (req: Request, res: Response) => {
     try {
@@ -98,7 +116,10 @@ const addUserDetails = async (req: Request, res: Response) => {
             return
         }
 
-        const savedUser = await User.findOneAndUpdate({id: userId}, {fullName: body.fullName, bio: body.bio}, {new: true})
+        const savedUser = await User.findOneAndUpdate({id: userId}, {
+            fullName: body.fullName,
+            bio: body.bio
+        }, {new: true})
 
         // Respond with the newly created user
         res.status(201).json(savedUser)
@@ -180,7 +201,7 @@ const getAllUsers = async (_req: Request, res: Response) => {
 const getUserById = async (req: Request, res: Response) => {
 
     try {
-        const userId = parseInt(req.params.userId)
+        const userId = req.userId
         const user = await User.findOne({id: userId})
 
         if (!user) {
@@ -343,5 +364,6 @@ export default {
     getUserById,
     updateBio,
     deleteUser,
-    changeVisibility
+    changeVisibility,
+    changePassword
 }

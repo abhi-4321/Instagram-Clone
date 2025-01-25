@@ -446,14 +446,51 @@ paths:
                     type: object
                     description: Detailed error information.
 
-  # Add details in a new user
-  /user/details/{userId}:
-    post:
+  # Change Password
+  /user/{userId}/changePassword:
+    put:
       tags:
         - User Controller
-      description: Create a new user.
+      description: Change password of user.
       security:
         - BearerAuth: [ ]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The ID of the user.
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  example: test@123.
+      responses:
+        201:
+          description: Password changed successfully.
+        500:
+          description: Internal server error.
+
+  # Add details in a new user
+  /user/{userId}/details:
+    put:
+      tags:
+        - User Controller
+      description: Update user details.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
       requestBody:
         required: true
         content:
@@ -469,7 +506,7 @@ paths:
                   example: Travel enthusiast.
       responses:
         201:
-          description: User created successfully.
+          description: User details updated successfully.
         500:
           description: Internal server error.
 

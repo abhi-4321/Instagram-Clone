@@ -4,23 +4,25 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET = 'chintapakdumdum'
 
-const verifyToken = async (token: string): Promise<boolean> => {
+const verifyToken = async (token: string): Promise<number|undefined> => {
     try {
         // Decode the token
-        const decoded = jwt.verify(token, JWT_SECRET) as { username: string }
+        const decoded = jwt.verify(token, JWT_SECRET) as { userId: number }
+
+        console.log(decoded)
 
         // Find the token in the database
-        const storedToken = await Token.findOne({ username: decoded.username })
+        const storedToken = await Token.findOne({ userId: decoded.userId })
 
         // Check if the token matches the stored token and hasn't expired
         if (!storedToken || storedToken.token !== token)
-            return false
+            return undefined
 
         // If all checks pass, return true
-        return true
+        return decoded.userId
     } catch (err: any) {
         console.error("Token verification error:", err.message)
-        return false // Invalid token
+        return undefined // Invalid token
     }
 }
 
@@ -33,12 +35,14 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
         return
     }
 
-    const isValid = await verifyToken(token)
+    const userId = await verifyToken(token)
 
-    if (!isValid) {
+    if (!userId) {
         res.status(401).json({ error: "Invalid or expired token" })
         return
     }
+
+    req.userId = userId!!
 
     next() // Proceed to the next middleware or route handler
 }

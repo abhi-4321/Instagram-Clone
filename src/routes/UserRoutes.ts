@@ -6,6 +6,9 @@ import authMiddleware from "../util/verifyToken";
 
 const router = Router()
 
+// Change Password
+router.put('/:userId/changePassword', userController.changePassword)
+
 // Change Visibility
 router.patch("/:userId/changeVisibility", userController.changeVisibility)
 
@@ -16,7 +19,7 @@ router.post("/:followedBy/follow/:followedTo", followController.follow)
 router.post("/:userId/profileImage", multer.single('image'), userController.uploadProfileImage)
 
 // Add User Details
-router.post("/details/:userId", userController.addUserDetails)
+router.put("/:userId/details", userController.addUserDetails)
 
 // All Users
 router.get("/", userController.getAllUsers)

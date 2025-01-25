@@ -18,7 +18,7 @@ route.use('/follow', authMiddleware, FollowRoutes) // Follow Routes
 route.use('/auth', AuthRoutes) // Auth Routes
 
 // Test Route
-route.get('/', (req: Request, res: Response) => {
+route.get('/', (_req: Request, res: Response) => {
     res.send('Server is working !!')
 })
 

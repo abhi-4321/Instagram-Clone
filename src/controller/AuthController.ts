@@ -8,14 +8,14 @@ import bcrypt from "bcrypt"
 const SALT_ROUNDS = 10 // Recommended value is 10-12
 const JWT_SECRET = 'chintapakdumdum'
 
-export const generateAndStoreToken = async (id: number): Promise<string> => {
+const generateAndStoreToken = async (id: number): Promise<string> => {
     // Generate a new token with a 14-day expiry
-    const token = jwt.sign({id}, JWT_SECRET, {expiresIn: "14d"})
+    const token = jwt.sign({userId: id}, JWT_SECRET, {expiresIn: "14d"})
 
     // Upsert (update or insert) the token in the database
     await Token.findOneAndUpdate(
-        {id}, // Query
-        {token}, // Update
+        {userId: id}, // Query
+        {token: token}, // Update
         {upsert: true, new: true} // Create if it doesn't exist, return the updated document
     )
 
@@ -34,11 +34,11 @@ const login = async (req: Request, res: Response) => {
 
         const isMatch = await bcrypt.compare(body.password, user.password)
         if (!isMatch) {
-            res.status(401).json({ error: "Invalid username or password" })
+            res.status(404).json({error: "Invalid username or password"})
             return
         }
 
-        const token = generateAndStoreToken(user.id)
+        const token = await generateAndStoreToken(user.id)
 
         res.status(201).json({message: "Login successful", token: token})
     } catch (error: any) {
@@ -76,7 +76,7 @@ const register = async (req: Request, res: Response) => {
         // Save the user to the database
         const savedUser = await user.save()
 
-        const token = generateAndStoreToken(savedUser.id)
+        const token = await generateAndStoreToken(savedUser.id)
 
         // Create an empty follow entry for the user
         const followEntry = new FollowEntry({
@@ -88,7 +88,7 @@ const register = async (req: Request, res: Response) => {
         await followEntry.save()
 
         // Respond with the newly created user
-        res.status(201).json({ user: savedUser,token : token })
+        res.status(201).json({user: savedUser, token: token})
 
     } catch (error: any) {
         res.status(500).json({error: "Failed to create user", details: error.message})

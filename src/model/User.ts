@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose"
-import { Post } from "./Post"
+import { Story } from "./Post"
 import { Highlight } from "./Highlight"
 
 export interface User extends Document {
@@ -13,7 +13,7 @@ export interface User extends Document {
   fullName: string
   bio: string
   highlights?: Highlight[]
-  posts?: Post[]
+  posts?: Story[]
   private: boolean
 }
 

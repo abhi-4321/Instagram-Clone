@@ -4,7 +4,7 @@ import {DeleteObjectCommand, GetObjectCommand, PutObjectCommand} from "@aws-sdk/
 import crypto from 'crypto'
 import {getSignedUrl} from "@aws-sdk/s3-request-presigner"
 import client from "../util/s3Client"
-import {Post} from "../model/Post"
+import {Story} from "../model/Post"
 import {Highlight} from "../model/Highlight"
 import {connection} from "mongoose"
 import {Comment} from "../model/Comment"
@@ -134,7 +134,7 @@ const getAllUsers = async (_req: Request, res: Response) => {
 
         for (const user of users) {
 
-            const posts = await Post.find({userId: user.id})
+            const posts = await Story.find({userId: user.id})
 
             for (const post of posts) {
                 const getObjectParams = {
@@ -220,7 +220,7 @@ const getUserById = async (req: Request, res: Response) => {
             user.profileImageUrl = url
         }
 
-        const posts = await Post.find({userId: userId})
+        const posts = await Story.find({userId: userId})
 
         // Get Posts' Signed Urls
         for (const post of posts) {
@@ -294,7 +294,7 @@ const deleteUser = async (req: Request, res: Response) => {
         await client.send(command)
         await user.deleteOne()
 
-        const posts = await Post.find({userId: userId})
+        const posts = await Story.find({userId: userId})
         const highlights = await Highlight.find({userId: userId})
 
         for (const post of posts) {
@@ -317,7 +317,7 @@ const deleteUser = async (req: Request, res: Response) => {
             await client.send(command)
         }
 
-        const deletedPosts = await Post.deleteMany({userId: userId})
+        const deletedPosts = await Story.deleteMany({userId: userId})
         const deletedHighlights = await Highlight.deleteMany({userId: userId})
 
         if (!deletedPosts || !deletedHighlights) {

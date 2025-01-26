@@ -4,6 +4,7 @@ import PostRoutes from "./routes/PostRoutes"
 import dotenv from 'dotenv'
 import HighlightRoute from "./routes/HighlightRoutes"
 import AuthRoutes from "./routes/AuthRoutes";
+import StoryRoute from "./routes/StoryRoutes";
 import authMiddleware from "./util/verifyToken";
 
 dotenv.config()
@@ -13,6 +14,7 @@ const route = Router()
 route.use('/user', authMiddleware, UserRoutes) // User Routes
 route.use('/post', authMiddleware, PostRoutes) // Post Routes
 route.use('/highlight', authMiddleware, HighlightRoute) // Highlight Routes
+route.use('/story', authMiddleware, StoryRoute) // Highlight Routes
 route.use('/auth', AuthRoutes) // Auth Routes
 
 // Test Route

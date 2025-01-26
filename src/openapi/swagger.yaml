@@ -174,7 +174,7 @@ paths:
   # Controller
 
   # Get following List of User
-  /follow/followingList:
+  /user/followingList:
     get:
       description: Get the following list of user.
       security:
@@ -190,7 +190,7 @@ paths:
           description: Internal server error.
 
   # Get followers List of user
-  /follow/followersList:
+  /user/followersList:
     get:
       description: Get the followers list of user.
       security:
@@ -555,7 +555,7 @@ paths:
   /user/follow/{followedTo}:
     post:
       tags:
-        - Follow Controller
+        - User Controller
       description: Follow or unfollow a user. If already following, it will unfollow, otherwise, it will follow.
       security:
         - BearerAuth: [ ]
@@ -817,6 +817,120 @@ paths:
                   error:
                     type: string
                     example: "Failed to fetch highlight"
+
+  # Story
+  # Controller
+
+  # Like a story
+  /story/like/{storyId}:
+    post:
+      description: Like or unlike a story
+      tags:
+        - Story Controller
+      parameters:
+        - in: path
+          name: storyId
+          schema:
+            type: integer
+          required: true
+          description: ID of the story to like/unlike
+      responses:
+        '200':
+          description: Story liked/unliked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Liked
+        '404':
+          description: Story not found
+        '500':
+          description: Failed to like/unlike story
+
+
+  /story:
+    # Create a new story
+    post:
+      description: Create a new story
+      tags:
+        - Story Controller
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                caption:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Story created successfully
+        '400':
+          description: Bad request
+        '404':
+          description: User not found
+        '500':
+          description: Failed to create story
+
+    # Get all stories
+    get:
+      description: Get all stories
+      tags:
+        - Story Controller
+      responses:
+        '200':
+          description: Stories retrieved successfully
+        '500':
+          description: Failed to fetch stories
+
+
+  /{storyId}:
+    # Delete a story
+    delete:
+      description: Delete a story
+      tags:
+        - Story Controller
+      parameters:
+        - in: path
+          name: storyId
+          schema:
+            type: integer
+          required: true
+          description: ID of the story to delete
+      responses:
+        '200':
+          description: Story deleted successfully
+        '404':
+          description: Story not found
+        '500':
+          description: Failed to delete story
+
+    # Get a story by id
+    get:
+      description: Get a story by ID
+      tags:
+        - Story Controller
+      parameters:
+        - in: path
+          name: storyId
+          schema:
+            type: integer
+          required: true
+          description: ID of the story to retrieve
+      responses:
+        '200':
+          description: Story retrieved successfully
+        '404':
+          description: Story not found
+        '500':
+          description: Failed to fetch story
 
   # Post
   # Controller

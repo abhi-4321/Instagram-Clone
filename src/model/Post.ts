@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose"
-import { Comment } from '../model/Comment'
+import { Comment } from './Comment'
 
 export interface Post extends Document {
     id: number
@@ -23,4 +23,4 @@ const postSchema = new Schema<Post>({
     comments: { type: [], default: [] }
 })
 
-export const Post = mongoose.model<Post>("Post", postSchema, "posts")
+export const Story = mongoose.model<Post>("Post", postSchema, "posts")

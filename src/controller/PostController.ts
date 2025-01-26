@@ -1,6 +1,6 @@
 import {Request, Response} from "express"
 import {User} from "../model/User"
-import {Post} from '../model/Post'
+import {Story} from '../model/Post'
 import {DeleteObjectCommand, GetObjectCommand, PutObjectCommand} from "@aws-sdk/client-s3"
 import crypto from 'crypto'
 import {getSignedUrl} from "@aws-sdk/s3-request-presigner"
@@ -60,7 +60,7 @@ const comment = async (req: Request, res: Response) => {
             return
         }
 
-        const post = await Post.findOne({id: postId})
+        const post = await Story.findOne({id: postId})
 
         if (!post) {
             res.status(404).json({message: "Post not found"})
@@ -95,7 +95,7 @@ const likePost = async (req: Request, res: Response) => {
         const userId = req.userId
         const postId = parseInt(req.params.postId)
 
-        const post = await Post.findOne({id: postId})
+        const post = await Story.findOne({id: postId})
 
         if (!post) {
             res.status(404).json({message: "Post not found"})
@@ -143,7 +143,7 @@ const getFeed = async (req: Request, res: Response) => {
 
         const listOfUsers: number[] = users.map(user => user.id)
 
-        const posts = await Post.find({userId: {$in: listOfUsers}})
+        const posts = await Story.find({userId: {$in: listOfUsers}})
 
         for (const post of posts) {
             const getObjectParams = {
@@ -193,9 +193,9 @@ const createPost = async (req: Request, res: Response) => {
         const command = new PutObjectCommand(params)
         await client.send(command)
 
-        const count = await Post.countDocuments({}, {hint: "_id_"})
+        const count = await Story.countDocuments({}, {hint: "_id_"})
 
-        const post = new Post({
+        const post = new Story({
             id: count + 1,
             userId: userId,
             caption: req.body.caption || "",
@@ -220,7 +220,7 @@ const deletePost = async (req: Request, res: Response) => {
         const userId = req.userId
         const postId = parseInt(req.params.postId)
 
-        const post = await Post.findOne({id: postId, userId: userId})
+        const post = await Story.findOne({id: postId, userId: userId})
 
         if (!post) {
             res.status(404).send({message: "Post not found"})
@@ -251,7 +251,7 @@ const deletePost = async (req: Request, res: Response) => {
 const getPostById = async (req: Request, res: Response) => {
     try {
         const postId = parseInt(req.params.postId)
-        const post = await Post.findOne({id: postId})
+        const post = await Story.findOne({id: postId})
 
         if (!post) {
             res.status(404).json({error: 'Post not found'})
@@ -279,7 +279,7 @@ const getPostById = async (req: Request, res: Response) => {
 const getAllPosts = async (req: Request, res: Response) => {
     try {
         const userId = req.userId
-        const posts = await Post.find({userId: userId})
+        const posts = await Story.find({userId: userId})
 
         for (const post of posts) {
             const getObjectParams = {
@@ -313,7 +313,7 @@ const updateCaption = async (req: Request, res: Response) => {
             res.status(400).json({error: "Bad Request"})
             return
         }
-        const post = await Post.findOneAndUpdate({id: postId, userId: userId}, {caption: caption}, {new: true})
+        const post = await Story.findOneAndUpdate({id: postId, userId: userId}, {caption: caption}, {new: true})
 
         if (!post) {
             res.status(404).json({error: "Post Not Found"})

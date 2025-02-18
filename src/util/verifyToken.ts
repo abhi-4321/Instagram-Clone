@@ -9,8 +9,6 @@ const verifyToken = async (token: string): Promise<number|undefined> => {
         // Decode the token
         const decoded = jwt.verify(token, JWT_SECRET) as { userId: number }
 
-        console.log(decoded)
-
         // Find the token in the database
         const storedToken = await Token.findOne({ userId: decoded.userId })
 

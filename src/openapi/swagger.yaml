@@ -825,6 +825,8 @@ paths:
   /story/like/{storyId}:
     post:
       description: Like or unlike a story
+      security:
+        - BearerAuth : []
       tags:
         - Story Controller
       parameters:
@@ -855,6 +857,8 @@ paths:
     # Create a new story
     post:
       description: Create a new story
+      security:
+        - BearerAuth: [ ]
       tags:
         - Story Controller
       requestBody:
@@ -864,9 +868,7 @@ paths:
             schema:
               type: object
               properties:
-                caption:
-                  type: string
-                file:
+                image:
                   type: string
                   format: binary
       responses:
@@ -882,6 +884,8 @@ paths:
     # Get all stories
     get:
       description: Get all stories
+      security:
+        - BearerAuth: [ ]
       tags:
         - Story Controller
       responses:
@@ -891,10 +895,37 @@ paths:
           description: Failed to fetch stories
 
 
-  /{storyId}:
+  /story/{userId}:
+    # Get stories by user
+    get:
+      description: Get user stories
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - Story Controller
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: integer
+          required: true
+          description: ID of the user to retrieve stories
+      responses:
+        '200':
+          description: Stories retrieved successfully
+        '400':
+          description: Stories retrieved unsuccessfully
+        '404':
+          description: No story found
+        '500':
+          description: Failed to fetch stories
+
+  /story/{storyId}:
     # Delete a story
     delete:
       description: Delete a story
+      security:
+        - BearerAuth: [ ]
       tags:
         - Story Controller
       parameters:
@@ -911,26 +942,6 @@ paths:
           description: Story not found
         '500':
           description: Failed to delete story
-
-    # Get a story by id
-    get:
-      description: Get a story by ID
-      tags:
-        - Story Controller
-      parameters:
-        - in: path
-          name: storyId
-          schema:
-            type: integer
-          required: true
-          description: ID of the story to retrieve
-      responses:
-        '200':
-          description: Story retrieved successfully
-        '404':
-          description: Story not found
-        '500':
-          description: Failed to fetch story
 
   # Post
   # Controller

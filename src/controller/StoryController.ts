@@ -18,7 +18,7 @@ const likeStory = async (req: Request, res: Response) => {
         const story = await Story.findOne({id: storyId})
 
         if (!story) {
-            res.status(404).json({message: "Post not found"})
+            res.status(404).json({message: "Story not found"})
             return
         }
 
@@ -40,7 +40,7 @@ const likeStory = async (req: Request, res: Response) => {
         res.status(200).json({message: message})
 
     } catch (error: any) {
-        res.status(500).json({error: 'Failed to like post', details: error})
+        res.status(500).json({error: 'Failed to like story', details: error})
     }
 }
 
@@ -72,35 +72,36 @@ const createStory = async (req: Request, res: Response) => {
 
         const count = await Story.countDocuments({}, {hint: "_id_"})
 
+        console.log(count)
+
         const story = new Story({
             id: count + 1,
             userId: userId,
-            caption: req.body.caption || "",
-            postUrl: imageName
+            storyUrl: imageName
         })
 
         const createdStory = await story.save()
 
         if (!createdStory) {
-            throw new Error("Unknown error occured")
+            throw new Error("Unknown error occurred")
         } else {
-            res.status(201).json({message: "Post created successfully"})
+            res.status(201).json({message: "Story created successfully"})
         }
 
     } catch (error: any) {
-        res.status(500).json({error: "Failed to create post", details: error})
+        res.status(500).json({error: "Failed to create story", details: error})
     }
 }
 
 const deleteStory = async (req: Request, res: Response) => {
     try {
         const userId = req.userId
-        const storyId = parseInt(req.params.postId)
+        const storyId = parseInt(req.params.storyId)
 
         const story = await Story.findOne({id: storyId, userId: userId})
 
         if (!story) {
-            res.status(404).send({message: "Post not found"})
+            res.status(404).send({message: "Story not found"})
             return
         }
 
@@ -115,24 +116,27 @@ const deleteStory = async (req: Request, res: Response) => {
         const deletedStory = await story.deleteOne()
 
         if (!deletedStory) {
-            res.status(500).send({message: "Unkown error occured"})
+            res.status(500).send({message: "Unknown error occurred"})
         } else {
-            res.status(200).send({message: "Post deleted"})
+            res.status(200).send({message: "Story deleted"})
         }
 
     } catch (error: any) {
-        res.status(500).json({error: 'Failed to delete post', details: error})
+        res.status(500).json({error: 'Failed to delete story', details: error})
     }
 }
 
-const getStoryById = async (req: Request, res: Response) => {
+const getStoriesByUser = async (req: Request, res: Response) => {
     try {
-        const storyId = parseInt(req.params.postId)
-        const story = await Story.findOne({id: storyId})
+        const userId = parseInt(req.params.userId)
+        const stories = await Story.find({userId: userId})
 
-        if (!story) {
-            res.status(404).json({error: 'Post not found'})
-        } else {
+        if (!stories) {
+            res.status(404).json({error: 'No story found'})
+            return
+        }
+
+        for (const story of stories) {
             const getObjectParams = {
                 Bucket: process.env.BUCKET_NAME!!,
                 Key: story?.storyUrl
@@ -141,11 +145,11 @@ const getStoryById = async (req: Request, res: Response) => {
             const command = new GetObjectCommand(getObjectParams)
             const url = await getSignedUrl(client, command, {expiresIn: 3600})
             story.storyUrl = url
-
-            res.status(200).json(story)
         }
+
+        res.status(200).json(stories)
     } catch (error: any) {
-        res.status(500).json({error: 'Failed to fetch post', details: error})
+        res.status(500).json({error: 'Failed to fetch story', details: error})
     }
 }
 
@@ -168,7 +172,7 @@ const getAllStories = async (req: Request, res: Response) => {
         res.status(200).json(stories)
 
     } catch (error: any) {
-        res.status(500).json({error: 'Failed to fetch posts', details: error})
+        res.status(500).json({error: 'Failed to fetch stories', details: error})
     }
 }
 
@@ -176,6 +180,6 @@ export default {
     likeStory,
     createStory,
     deleteStory,
-    getStoryById,
+    getStoriesByUser,
     getAllStories,
 }

@@ -14,7 +14,7 @@ const route = Router()
 route.use('/user', authMiddleware, UserRoutes) // User Routes
 route.use('/post', authMiddleware, PostRoutes) // Post Routes
 route.use('/highlight', authMiddleware, HighlightRoute) // Highlight Routes
-route.use('/story', authMiddleware, StoryRoute) // Highlight Routes
+route.use('/story', authMiddleware, StoryRoute) // Story Routes
 route.use('/auth', AuthRoutes) // Auth Routes
 
 // Test Route

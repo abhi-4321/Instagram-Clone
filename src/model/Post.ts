@@ -23,4 +23,4 @@ const postSchema = new Schema<Post>({
     comments: { type: [], default: [] }
 })
 
-export const Story = mongoose.model<Post>("Post", postSchema, "posts")
+export const Post = mongoose.model<Post>("Post", postSchema, "posts")

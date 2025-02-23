@@ -447,7 +447,7 @@ paths:
         500:
           description: Internal server error.
 
-  # Add details in a new user
+  # Update user details
   /user/details:
     put:
       tags:
@@ -455,12 +455,6 @@ paths:
       description: Update user details.
       security:
         - BearerAuth: [ ]
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
       requestBody:
         required: true
         content:
@@ -470,10 +464,16 @@ paths:
               properties:
                 fullName:
                   type: string
+                  required: false
                   example: John Doe
                 bio:
                   type: string
+                  required: false
                   example: Travel enthusiast.
+                username:
+                  type: string
+                  required: false
+                  example: zufu.kid
       responses:
         201:
           description: User details updated successfully.
@@ -881,16 +881,21 @@ paths:
         '500':
           description: Failed to create story
 
-    # Get all stories
+    # Get display users
     get:
-      description: Get all stories
+      description: Get display users
       security:
         - BearerAuth: [ ]
       tags:
         - Story Controller
       responses:
         '200':
-          description: Stories retrieved successfully
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                example: [1,2,3]
         '500':
           description: Failed to fetch stories
 

@@ -104,22 +104,33 @@ const uploadProfileImage = async (req: Request, res: Response) => {
     }
 }
 
-const addUserDetails = async (req: Request, res: Response) => {
+const updateUserDetails = async (req: Request, res: Response) => {
     try {
         // Proceed with user creation
         const userId = req.userId
         const body = req.body
-        const exists = await User.findOne({id: userId})
 
-        if (exists) {
-            res.status(400).json({error: "Username already exists"})
+        const existingUser = await User.findOne({ id: userId })
+        if (!existingUser) {
+            res.status(404).json({ message: "User not found" })
             return
         }
 
-        const savedUser = await User.findOneAndUpdate({id: userId}, {
-            fullName: body.fullName,
-            bio: body.bio
-        }, {new: true})
+        const isFirstUpdate = !existingUser.fullName || !existingUser.bio
+        if (isFirstUpdate && (!body.fullName || !body.bio)) {
+            res.status(400).json({ message: "Full name and bio are required for the first update" })
+            return
+        }
+
+        if (body.username) {
+            const usernameExists = await User.findOne({ username: body.username, id: { $ne: userId } });
+            if (usernameExists) {
+                res.status(400).json({ message: "Username already exists" })
+                return
+            }
+        }
+
+        const savedUser = await User.findOneAndUpdate({id: userId}, {$set : body}, {new: true})
 
         // Respond with the newly created user
         res.status(201).json(savedUser)
@@ -336,7 +347,7 @@ const deleteUser = async (req: Request, res: Response) => {
 
 export default {
     uploadProfileImage,
-    addUserDetails,
+    updateUserDetails,
     getAllUsers,
     getUserById,
     deleteUser,

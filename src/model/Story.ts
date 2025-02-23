@@ -17,6 +17,6 @@ const storySchema = new Schema<Story>({
 })
 
 // Create a TTL index on the `createdAt` field
-storySchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 }); // 86400 seconds = 24 hours
+storySchema.index({ createdAt: 1 }, { expireAfterSeconds: 86400 }); // 86400 seconds = 24 hours
 
 export const Story = mongoose.model<Story>("Story", storySchema, "stories")

@@ -5,6 +5,7 @@ import {DeleteObjectCommand, GetObjectCommand, PutObjectCommand} from "@aws-sdk/
 import client from "../util/s3Client";
 import {Story} from "../model/Story";
 import {getSignedUrl} from "@aws-sdk/s3-request-presigner";
+import {FollowEntry} from "../model/Followers";
 
 const randomImageName = () => crypto.randomBytes(32).toString('hex')
 const bucketName = process.env.BUCKET_NAME || 'myBucketName'
@@ -126,7 +127,7 @@ const deleteStory = async (req: Request, res: Response) => {
     }
 }
 
-const getStoriesByUser = async (req: Request, res: Response) => {
+const getUserStories = async (req: Request, res: Response) => {
     try {
         const userId = parseInt(req.params.userId)
         const stories = await Story.find({userId: userId})
@@ -153,33 +154,27 @@ const getStoriesByUser = async (req: Request, res: Response) => {
     }
 }
 
-const getAllStories = async (req: Request, res: Response) => {
-    try {
-        const userId = req.userId
-        const stories = await Story.find({userId: userId})
+const getDisplayUsers = async (req: Request, res: Response) => {
+    const userId = req.userId
+    const object = await FollowEntry.findOne({userId: userId})
 
-        for (const story of stories) {
-            const getObjectParams = {
-                Bucket: process.env.BUCKET_NAME!!,
-                Key: story?.storyUrl
-            }
+    let users = [userId]
 
-            const command = new GetObjectCommand(getObjectParams)
-            const url = await getSignedUrl(client, command, {expiresIn: 3600})
-            story.storyUrl = url
+    if (object) {
+        const followingList = object.followingList
+        if(followingList != null && followingList.length > 0) {
+            users.push(...followingList)
         }
-
-        res.status(200).json(stories)
-
-    } catch (error: any) {
-        res.status(500).json({error: 'Failed to fetch stories', details: error})
     }
+
+
+    res.status(200).json(users)
 }
 
 export default {
     likeStory,
     createStory,
     deleteStory,
-    getStoriesByUser,
-    getAllStories,
+    getUserStories,
+    getDisplayUsers,
 }

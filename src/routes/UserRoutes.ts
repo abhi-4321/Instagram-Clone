@@ -25,7 +25,7 @@ router.post("/follow/:followedTo", followController.follow)
 router.post("/profileImage", multer.single('image'), userController.uploadProfileImage)
 
 // Add User Details
-router.put("/details", userController.addUserDetails)
+router.put("/details", userController.updateUserDetails)
 
 // All Users
 router.get("/list", userController.getAllUsers)

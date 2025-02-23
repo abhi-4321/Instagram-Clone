@@ -14,9 +14,9 @@ router.post("/", multer.single('image'), storyController.createStory)
 router.delete("/:storyId", storyController.deleteStory)
 
 // Get Story by id
-router.get("/:userId", storyController.getStoriesByUser)
+router.get("/:userId", storyController.getUserStories)
 
-// Get all stories
-router.get("/", storyController.getAllStories)
+// Get display users
+router.get("/", storyController.getDisplayUsers)
 
 export default router

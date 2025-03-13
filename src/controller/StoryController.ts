@@ -159,6 +159,7 @@ const getDisplayUsers = async (req: Request, res: Response) => {
     const object = await FollowEntry.findOne({userId: userId})
 
     let users = [userId]
+    let displayUsers = []
 
     if (object) {
         const followingList = object.followingList
@@ -167,8 +168,37 @@ const getDisplayUsers = async (req: Request, res: Response) => {
         }
     }
 
+    for (const id of users) {
+        const displayUser = await User.findOne({userId: id})
 
-    res.status(200).json(users)
+        if (!displayUser) {
+            continue
+        }
+
+        const isStoryExist = await Story.find({userId: id})
+
+        if (!isStoryExist || isStoryExist.length == 0) {
+            continue
+        }
+
+        const getObjectParams = {
+            Bucket: process.env.BUCKET_NAME!!,
+            Key: displayUser.profileImageUrl
+        }
+
+        const command = new GetObjectCommand(getObjectParams)
+        const url = await getSignedUrl(client, command, {expiresIn: 3600})
+
+        const json = {
+            userId: displayUser.id,
+            username: displayUser.username,
+            profileImageUrl: url
+        }
+
+        displayUsers.push(json)
+    }
+
+    res.status(200).json(displayUsers)
 }
 
 export default {

@@ -96,7 +96,7 @@ const uploadProfileImage = async (req: Request, res: Response) => {
         const updatedUser = await user?.save()
 
         if (!updatedUser)
-            throw new Error('Unable to update the profile image')
+            res.status(500).json({error: "Failed to create story", details: "Unable to update the profile image"})
 
         res.status(200).json({message: "Profile picture updated"})
     } catch (error: any) {

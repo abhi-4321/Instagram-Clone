@@ -895,9 +895,17 @@ paths:
             application/json:
               schema:
                 type: array
-                example: [1,2,3]
+                items:
+                  type: object
+                  properties:
+                    userId:
+                      type: integer
+                    username:
+                      type: string
+                    profileImageUrl:
+                      type: string
         '500':
-          description: Failed to fetch stories
+          description: Failed to fetch display users
 
 
   /story/{userId}:

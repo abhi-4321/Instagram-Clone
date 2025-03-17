@@ -79,11 +79,10 @@ const comment = async (req: Request, res: Response) => {
         const savedComment = await commentModel.save()
 
         if (!savedComment) {
-            throw new Error("Unknown error occured")
+            res.status(500).json({error: 'Failed to add comment', details: "Unknown error occured"})
         } else {
             res.status(201).json({message: "Comment added"})
         }
-
     } catch (error: any) {
         res.status(500).json({error: 'Failed to add comment', details: error})
     }
@@ -139,11 +138,13 @@ const getFeed = async (req: Request, res: Response) => {
                 { private: false }, // Public accounts
                 { private: true, id: { $in: followedAccounts } } // Private accounts followed by the user
             ]
-        }).select('id')
+        },'id username profileImageUrl')
 
         const listOfUsers: number[] = users.map(user => user.id)
 
         const posts = await Post.find({userId: {$in: listOfUsers}})
+
+        const extList = []
 
         for (const post of posts) {
             const getObjectParams = {
@@ -153,14 +154,43 @@ const getFeed = async (req: Request, res: Response) => {
 
             const command = new GetObjectCommand(getObjectParams)
             const url = await getSignedUrl(client, command, {expiresIn: 3600})
-            post.postUrl = url
+            // post.postUrl = url
 
             const comments = await Comment.find({postId: post.id})
-            post.comments = comments
-            post.commentsCount = post.comments.length.toString()
+            // post.commentsCount = post.comments.length.toString()
+
+            const userS = users.filter(it => it.id == post.userId)
+            let user = null
+
+            if (!userS || userS.length == 0) {}
+            else {
+                user = userS[0]
+            }
+
+            const getObjectParams2 = {
+                Bucket: process.env.BUCKET_NAME!!,
+                Key: user?.profileImageUrl
+            }
+            const command2 = new GetObjectCommand(getObjectParams2)
+            const url2 = await getSignedUrl(client, command2, {expiresIn: 3600})
+
+            const json = {
+                id: post.id,
+                userId: post.userId,
+                postUrl: url,
+                caption: post.caption,
+                likesCount: post.likesCount,
+                likedBy: post.likedBy,
+                commentsCount: comments.length.toString(),
+                comments: comments,
+                username: user?.username,
+                profileImageUrl: url2,
+            }
+
+            extList.push(json)
         }
 
-        res.status(200).json(posts)
+        res.status(200).json(extList)
 
     } catch (error: any) {
         res.status(500).json({error: 'Failed to fetch posts', details: error})
@@ -205,7 +235,7 @@ const createPost = async (req: Request, res: Response) => {
         const createdPost = await post.save()
 
         if (!createdPost) {
-            throw new Error("Unknown error occured")
+            res.status(500).json({error: "Failed to create story", details: "Unknown error occurred"})
         } else {
             res.status(201).json({message: "Post created successfully"})
         }

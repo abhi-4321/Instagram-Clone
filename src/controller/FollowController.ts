@@ -40,7 +40,8 @@ const follow = async (req: Request, res: Response) => {
         const res2 = await followHoneWala.save()
 
         if (!res1 || !res2) {
-            throw new Error("Unknown error occured")
+            res.status(500).json({error: "Failed to create story", details: "Unknown error occurred"})
+            return
         }
 
         res.status(200).json({ message: message })

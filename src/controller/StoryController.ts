@@ -166,16 +166,21 @@ const getDisplayUsers = async (req: Request, res: Response) => {
         if(followingList != null && followingList.length > 0) {
             users.push(...followingList)
         }
+        console.log(users)
     }
 
     for (const id of users) {
-        const displayUser = await User.findOne({userId: id})
+        const displayUser = await User.findOne({id: id})
+
+        console.log(displayUser)
 
         if (!displayUser) {
             continue
         }
 
         const isStoryExist = await Story.find({userId: id})
+
+        console.log(isStoryExist)
 
         if (!isStoryExist || isStoryExist.length == 0) {
             continue
@@ -194,7 +199,7 @@ const getDisplayUsers = async (req: Request, res: Response) => {
             username: displayUser.username,
             profileImageUrl: url
         }
-
+        console.log(json)
         displayUsers.push(json)
     }
 

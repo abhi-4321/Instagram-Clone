@@ -1,11 +1,11 @@
 {
   "name": "instagram-clone",
   "version": "1.0.0",
-  "main": "index.ts",
+  "main": "index.js",
   "scripts": {
     "start": "node dist/src/index.js",
     "build": "tsc",
-    "start:prod": "node dist/src",
+    "start:prod": "node dist/src/index.js",
     "serve": "node dist/src/index.js",
     "dev": "nodemon dist/src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"

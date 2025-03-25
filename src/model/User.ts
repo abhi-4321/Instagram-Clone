@@ -4,6 +4,7 @@ import { Highlight } from "./Highlight"
 
 export interface User extends Document {
   id: number
+  email: string
   username: string
   password: string
   profileImageUrl: string
@@ -19,6 +20,7 @@ export interface User extends Document {
 
 const userSchema = new Schema<User>({
   id: { type: Number, unique: true, required: true },
+  email: { type: String, unique: true, required: true },
   username: { type: String, unique: true, required: true },
   password: { type: String, required: true },
   profileImageUrl: { type : String, default: "" },

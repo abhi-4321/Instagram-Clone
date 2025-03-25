@@ -1,5 +1,4 @@
 import {Router} from "express"
-import multer from "../util/multer"
 import userController from "../controller/UserController"
 import followController from "../controller/FollowController"
 import AuthController from "../controller/AuthController";

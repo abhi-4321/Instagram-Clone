@@ -49,6 +49,7 @@ const login = async (req: Request, res: Response) => {
 const register = async (req: Request, res: Response) => {
     try {
         // Proceed with user creation
+        const email = req.body.email
         const username = req.body.username
         const password = req.body.password
         const exists = await User.findOne({username: username})
@@ -67,6 +68,7 @@ const register = async (req: Request, res: Response) => {
         // Create a new user
         const user = new User({
             id: count + 1,
+            email: email,
             username: username,
             password: hashedPassword,
             highlights: [],

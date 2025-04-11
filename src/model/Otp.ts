@@ -1,5 +1,5 @@
-import mongoose, {Document} from 'mongoose';
-import mailSender from '../util/MailSender' ;
+import mongoose, {Document} from 'mongoose'
+import mailSender from '../util/mailSender'
 
 export interface Otp extends Document {
     email: string
@@ -20,10 +20,10 @@ const otpSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     }
-});
+})
 
 // Create a TTL index on the `createdAt` field
-otpSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 }); // 60 seconds
+otpSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 }) // 60 seconds
 
 // Define a function to send emails
 async function sendVerificationEmail(email: string, otp: string) {
@@ -42,13 +42,13 @@ async function sendVerificationEmail(email: string, otp: string) {
 }
 
 otpSchema.pre("save", async function (next) {
-    console.log("New document saved to the database");
+    console.log("New document saved to the database")
     // Only send an email when a new document is created
     if (this.isNew) {
-        console.log("Sending vertification mail");
-        await sendVerificationEmail(this.email, this.otp);
+        console.log("Sending vertification mail")
+        await sendVerificationEmail(this.email, this.otp)
     }
-    next();
-});
+    next()
+})
 
-export const Otp =  mongoose.model("Otp", otpSchema, "otp");
+export const Otp =  mongoose.model("Otp", otpSchema, "otp")

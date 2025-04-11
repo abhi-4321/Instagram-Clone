@@ -24,15 +24,28 @@ const generateAndStoreToken = async (id: number): Promise<string> => {
 
 const login = async (req: Request, res: Response) => {
     try {
-        const body = req.body
-        const user = await User.findOne({username: body.username})
+        const {username, email, password}  = req.body
 
-        if (!user) {
-            res.status(404).json({error: "Invalid Username or password"})
+        // Validate required fields
+        if ((!username && !email) || !password) {
+            res.status(400).json({
+                error: "Missing credentials. Provide either username or email, and a password."
+            })
             return
         }
 
-        const isMatch = await bcrypt.compare(body.password, user.password)
+        // Find user by username or email
+        const query: any = {};
+        if (username) query.username = username;
+        if (email) query.email = email;
+
+        const user = await User.findOne(query);
+        if (!user) {
+            res.status(404).json({ error: "Invalid username/email or password" });
+            return
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password)
         if (!isMatch) {
             res.status(404).json({error: "Invalid username or password"})
             return
@@ -49,9 +62,7 @@ const login = async (req: Request, res: Response) => {
 const register = async (req: Request, res: Response) => {
     try {
         // Proceed with user creation
-        const email = req.body.email
-        const username = req.body.username
-        const password = req.body.password
+        const {email, username, password, fullName} = req.body
         const exists = await User.findOne({username: username})
 
         if (exists) {
@@ -71,6 +82,7 @@ const register = async (req: Request, res: Response) => {
             email: email,
             username: username,
             password: hashedPassword,
+            fullName: fullName,
             highlights: [],
             posts: [],
         })

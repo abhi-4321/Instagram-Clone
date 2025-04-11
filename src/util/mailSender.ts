@@ -18,7 +18,7 @@ const mailSender = async (email: string, title: string, body: string) => {
         })
         // Send emails to users
         let info = await transporter.sendMail({
-            from: 'Instagram Clone',
+            from: `"Instagram Clone" <${process.env.MAIL_USER}>`,
             to: email,
             subject: title,
             html: body,

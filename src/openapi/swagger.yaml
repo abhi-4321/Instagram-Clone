@@ -51,7 +51,6 @@ paths:
                   example: "password123"
                   description: "The password of the user."
               required:
-                - username
                 - password
       responses:
         201:
@@ -115,22 +114,20 @@ paths:
               properties:
                 email:
                   type: string
-                  required: true
                   example: "abc123@xyz.com"
                   description: "The email of the user."
                 username:
                   type: string
-                  required: true
                   example: "newuser"
                   description: "The username of the user."
                 password:
-                  required: true
                   type: string
                   example: "password123"
                   description: "The password for the user."
               required:
                 - username
                 - password
+                - email
       responses:
         201:
           description: User successfully registered
@@ -183,6 +180,204 @@ paths:
                     example: "Failed to create user"
                   details:
                     type: string
+
+  # Send Otp
+  /auth/sendOtp:
+    post:
+      tags:
+        - Auth Controller
+      description: Sends a 6-digit OTP to the provided email if the user is not registered.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+      responses:
+        '200':
+          description: OTP sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: OTP sent successfully
+                  otp:
+                    type: string
+                    example: "123456"
+        '401':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: User is already registered
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: Something went wrong
+
+  # Verify the otp
+  /auth/verifyOtp:
+    post:
+      tags:
+        - Auth Controller
+      description: Verifies the OTP for the given email.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otp
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                otp:
+                  type: string
+                  example: "123456"
+      responses:
+        '201':
+          description: Email verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Email verified successfully
+        '400':
+          description: Invalid OTP or user exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: The OTP is invalid
+        '403':
+          description: Missing fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: All fields are required
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: Something went wrong
+
+  # Validate username
+  /auth/validate/{username}:
+    get:
+      description: Validates whether the provided username is available for use.
+      tags:
+        - Auth Controller
+      parameters:
+        - name: username
+          in: path
+          required: true
+          description: The username to validate
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Username is available
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Valid username
+        '400':
+          description: Invalid or missing username
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid username
+        '409':
+          description: Username already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Username already exists
+        '500':
+          description: Server error during validation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to validate username
+                  details:
+                    type: string
+                    example: Internal server error message
 
   # User
   # Controller
@@ -840,7 +1035,7 @@ paths:
     post:
       description: Like or unlike a story
       security:
-        - BearerAuth : []
+        - BearerAuth: [ ]
       tags:
         - Story Controller
       parameters:

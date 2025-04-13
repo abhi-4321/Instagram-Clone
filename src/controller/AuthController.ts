@@ -109,8 +109,30 @@ const register = async (req: Request, res: Response) => {
     }
 }
 
+const validateUsername = async (req: Request, res: Response) => {
+    try {
+        const username = req.params.username
+        if (!username) {
+            res.status(400).json({error: "Invalid username"})
+            return
+        }
+
+        const user = await User.exists({username : username})
+
+        if (user) {
+            res.status(409).json({error: "Username already exists"})
+            return
+        }
+
+        res.sendStatus(200)
+    } catch (error: any) {
+        res.status(500).json({error: "Failed to validate username", details: error.message})
+    }
+}
+
 export default {
     login,
-    register
+    register,
+    validateUsername
 }
 

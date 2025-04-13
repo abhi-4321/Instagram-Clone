@@ -33,8 +33,6 @@ async function sendVerificationEmail(email: string, otp: string) {
             "Verification Email",
             "Your code is : " + otp
         )
-        console.log("Email details: ", email + " " + otp)
-        console.log("Email sent successfully: ", mailResponse)
     } catch (error) {
         console.log("Error occurred while sending email: ", error);
         throw error;
@@ -42,7 +40,6 @@ async function sendVerificationEmail(email: string, otp: string) {
 }
 
 otpSchema.pre("save", async function (next) {
-    console.log("New document saved to the database")
     // Only send an email when a new document is created
     if (this.isNew) {
         console.log("Sending vertification mail")

@@ -11,4 +11,7 @@ router.post("/register", AuthController.register)
 // Login
 router.post("/login", AuthController.login)
 
+// Validate username
+router.get("/validate/{username}", AuthController.validateUsername)
+
 export default router

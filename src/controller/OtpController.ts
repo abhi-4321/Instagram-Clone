@@ -36,7 +36,6 @@ const sendOtp = async (req: Request, res: Response) => {
         res.status(200).json({
             success: true,
             message: 'OTP sent successfully',
-            otp: otp,
         });
     } catch (error: any) {
         console.log(error.message)
@@ -58,7 +57,7 @@ const verifyEmail = async (req: Request, res: Response) => {
         // Check if user already exists
         const existingUser = await User.findOne({ email : email })
         if (existingUser) {
-            res.status(400).json({
+            res.status(409).json({
                 success: false,
                 message: 'A user with this email already exists',
             })

@@ -6,7 +6,6 @@ import HighlightRoute from "./routes/HighlightRoutes"
 import AuthRoutes from "./routes/AuthRoutes";
 import StoryRoute from "./routes/StoryRoutes";
 import authMiddleware from "./util/verifyToken";
-import OtpRoutes from "./routes/OtpRoutes";
 
 dotenv.config()
 
@@ -17,7 +16,6 @@ route.use('/post', authMiddleware, PostRoutes) // Post Routes
 route.use('/highlight', authMiddleware, HighlightRoute) // Highlight Routes
 route.use('/story', authMiddleware, StoryRoute) // Story Routes
 route.use('/auth', AuthRoutes) // Auth Routes
-route.use('/verify', OtpRoutes) // Verification
 
 // Test Route
 route.get('/', (_req: Request, res: Response) => {

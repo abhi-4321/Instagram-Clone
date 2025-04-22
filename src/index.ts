@@ -4,9 +4,14 @@ import Routes from './routes'
 import dotenv from 'dotenv'
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs"
+import http from 'http'
+import {setupWebSocket} from './websocket/server'
 
 const app: Express = express()
-const swaggerDocument = YAML.load("./src/openapi/swagger.yaml");
+const swaggerDocument = YAML.load("./src/openapi/swagger.yaml")
+
+const server = http.createServer(app)
+setupWebSocket(server)
 
 dotenv.config()
 connectDb()
@@ -14,8 +19,8 @@ connectDb()
 const PORT = process.env.PORT || 3000
 app.use(express.json())
 app.use('/', Routes)
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log("Server Listening on PORT:", PORT)
 })

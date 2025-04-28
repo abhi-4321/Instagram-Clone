@@ -26,11 +26,15 @@ export const getClientSocket = (userId: number): WebSocket | undefined => {
 export const handleMessage = async (ws: WebSocket, data: string) => {
     try {
         const msg = JSON.parse(data)
+        console.log(`Handling message from ${msg.senderId} to ${msg.receiverId}:`, msg)
 
         // Check if the receiver is connected
         const receiverSocket = getClientSocket(msg.receiverId)
         if (receiverSocket && receiverSocket.readyState === WebSocket.OPEN) {
+            console.log(`Forwarding message to receiver ${msg.receiverId}`)
             receiverSocket.send(JSON.stringify(msg))
+        } else {
+            console.log(`Receiver ${msg.receiverId} is not connected or socket not open`)
         }
 
         const newChat = new Chat({
@@ -45,7 +49,8 @@ export const handleMessage = async (ws: WebSocket, data: string) => {
         await newChat.save()
 
         // (Optional) Acknowledge to sender
-        ws.send(JSON.stringify({ status: 'Message sent.'}))
+        ws.send(JSON.stringify(msg))
+        console.log(`Acknowledgment sent to sender ${msg.senderId}`)
     } catch (error: any) {
         console.error('Invalid JSON received:', data)
         ws.send(JSON.stringify({ error: 'Invalid message format' }))

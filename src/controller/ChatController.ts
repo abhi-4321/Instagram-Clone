@@ -32,7 +32,7 @@ const getChatUsers = async (req: Request, res: Response) => {
 
         const users = await User.find({id: {$in: userIds}})
             .lean()
-            .select('id fullName profileImageUrl')
+            .select('id fullName profileImageUrl username' )
 
         const result = await Promise.all(users.map(async user => {
             let url = ""
@@ -50,6 +50,7 @@ const getChatUsers = async (req: Request, res: Response) => {
                 receiverId: user.id,
                 fullName: user.fullName,
                 profileImageUrl: url,
+                username: user.username,
                 lastChat: latestChatsMap.get(user.id)
             }
         }))

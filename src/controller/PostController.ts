@@ -235,7 +235,7 @@ const createPost = async (req: Request, res: Response) => {
         const createdPost = await post.save()
 
         if (!createdPost) {
-            res.status(500).json({error: "Failed to create story", details: "Unknown error occurred"})
+            res.status(500).json({error: "Failed to create post", details: "Unknown error occurred"})
         } else {
             res.status(201).json({message: "Post created successfully"})
         }

@@ -72,13 +72,11 @@ const getFollowers = async (req: Request, res: Response) => {
             return
         }
 
-        console.log(entry)
 
         const users = await User.find({id: {$in: entry.followingList}})
             .lean()
             .select('id fullName profileImageUrl username')
 
-        console.log(users)
 
         const result = await Promise.all(users.map(async user => {
             let url = ""
@@ -99,8 +97,6 @@ const getFollowers = async (req: Request, res: Response) => {
                 username: user.username,
             }
         }))
-
-        console.log(result)
 
         res.status(200).json(result)
 

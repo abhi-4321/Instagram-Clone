@@ -190,7 +190,8 @@ const getDisplayUsers = async (req: Request, res: Response) => {
         const json = {
             userId: displayUser.id,
             username: displayUser.username,
-            profileImageUrl: url
+            profileImageUrl: url,
+            fullName: displayUser.fullName
         }
 
         displayUsers.push(json)

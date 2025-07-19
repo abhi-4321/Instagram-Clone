@@ -1,4 +1,4 @@
-import { WebSocketServer, WebSocket } from 'ws'
+import {WebSocketServer, WebSocket, RawData} from 'ws'
 import {setClientSocket, removeClientSocket, handleMessage} from './wshandler'
 import http from 'http'
 import { parse } from 'url'
@@ -19,7 +19,7 @@ export const setupWebSocket = (server: http.Server) => {
             console.log('Client connected without valid userId')
         }
 
-        ws.on('message', (data) => {
+        ws.on('message', (data: RawData) => {
             try {
                 const parsed = JSON.parse(data.toString())
 

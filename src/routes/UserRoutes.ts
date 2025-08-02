@@ -3,6 +3,7 @@ import multer from "../util/multer"
 import userController from "../controller/UserController"
 import followController from "../controller/FollowController"
 import authMiddleware from "../util/verifyToken";
+import route from "../routes";
 
 const router = Router()
 
@@ -35,5 +36,11 @@ router.get("/", userController.getUserById)
 
 // Delete User
 router.delete("/", userController.deleteUser)
+
+// Get user by id
+router.get("/:userId", userController.getUserById)
+
+// Search for users
+router.get("search", userController.searchUsers)
 
 export default router

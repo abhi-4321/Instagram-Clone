@@ -7,6 +7,7 @@ import {getSignedUrl} from "@aws-sdk/s3-request-presigner"
 import client from "../util/s3Client"
 import {Comment} from "../model/Comment"
 import {FollowEntry} from "../model/Followers"
+import {Saved} from "../model/Saved";
 
 // Image Name Generator
 const randomImageName = () => crypto.randomBytes(32).toString('hex')
@@ -133,18 +134,15 @@ const getFeed = async (req: Request, res: Response) => {
         }).select('followingList'))?.followingList ?? []
 
         const users = await User.find({
-            id: { $ne: userId },
+            id: {$ne: userId},
             $or: [
-                { private: false }, // Public accounts
-                { private: true, id: { $in: followedAccounts } } // Private accounts followed by the user
+                {private: false}, // Public accounts
+                {private: true, id: {$in: followedAccounts}} // Private accounts followed by the user
             ]
-        },'id username profileImageUrl')
+        }, 'id username profileImageUrl')
 
         const listOfUsers: number[] = users.map(user => user.id)
-
         const posts = await Post.find({userId: {$in: listOfUsers}})
-
-        const extList = []
 
         for (const post of posts) {
             const getObjectParams = {
@@ -153,44 +151,31 @@ const getFeed = async (req: Request, res: Response) => {
             }
 
             const command = new GetObjectCommand(getObjectParams)
-            const url = await getSignedUrl(client, command, {expiresIn: 3600})
-            // post.postUrl = url
+            post.postUrl = await getSignedUrl(client, command, {expiresIn: 3600})
 
-            const comments = await Comment.find({postId: post.id})
-            // post.commentsCount = post.comments.length.toString()
+            post.comments = await Comment.find({postId: post.id})
+            post.commentsCount = post.comments.length.toString()
 
             const userS = users.filter(it => it.id == post.userId)
             let user = null
 
-            if (!userS || userS.length == 0) {}
-            else {
+            if (!userS || userS.length == 0) {
+            } else {
                 user = userS[0]
             }
 
             const getObjectParams2 = {
                 Bucket: process.env.BUCKET_NAME!!,
-                Key: user?.profileImageUrl
+                Key: user!!.profileImageUrl
             }
             const command2 = new GetObjectCommand(getObjectParams2)
             const url2 = await getSignedUrl(client, command2, {expiresIn: 3600})
 
-            const json = {
-                id: post.id,
-                userId: post.userId,
-                postUrl: url,
-                caption: post.caption,
-                likesCount: post.likesCount,
-                likedBy: post.likedBy,
-                commentsCount: comments.length.toString(),
-                comments: comments,
-                username: user?.username,
-                profileImageUrl: url2,
-            }
-
-            extList.push(json)
+            post.username = user!!.username
+            post.profileImageUrl = url2
         }
 
-        res.status(200).json(extList)
+        res.status(200).json(posts)
 
     } catch (error: any) {
         res.status(500).json({error: 'Failed to fetch posts', details: error})
@@ -229,7 +214,9 @@ const createPost = async (req: Request, res: Response) => {
             id: count + 1,
             userId: userId,
             caption: req.body.caption || "",
-            postUrl: imageName
+            postUrl: imageName,
+            username: user.username,
+            profileImageUrl: user.profileImageUrl
         })
 
         const createdPost = await post.save()
@@ -292,11 +279,9 @@ const getPostById = async (req: Request, res: Response) => {
             }
 
             const command = new GetObjectCommand(getObjectParams)
-            const url = await getSignedUrl(client, command, {expiresIn: 3600})
-            post.postUrl = url
+            post.postUrl = await getSignedUrl(client, command, {expiresIn: 3600})
 
-            const comments = await Comment.find({postId: post.id})
-            post.comments = comments
+            post.comments = await Comment.find({postId: post.id})
             post.commentsCount = post.comments.length.toString()
 
             res.status(200).json(post)
@@ -318,11 +303,9 @@ const getAllPosts = async (req: Request, res: Response) => {
             }
 
             const command = new GetObjectCommand(getObjectParams)
-            const url = await getSignedUrl(client, command, {expiresIn: 3600})
-            post.postUrl = url
+            post.postUrl = await getSignedUrl(client, command, {expiresIn: 3600})
 
-            const comments = await Comment.find({postId: post.id})
-            post.comments = comments
+            post.comments = await Comment.find({postId: post.id})
             post.commentsCount = post.comments.length.toString()
         }
 
@@ -355,6 +338,157 @@ const updateCaption = async (req: Request, res: Response) => {
     }
 }
 
+const exploreSection = async (req: Request, res: Response) => {
+    try {
+        const userId = req.userId
+
+        const users = await User.find({
+            id: {$ne: userId},
+            $or: [{private: false}]// Public accounts
+        }, 'id username profileImageUrl')
+
+        const listOfUsers: number[] = users.map(user => user.id)
+        const posts = await Post.find({userId: {$in: listOfUsers}})
+
+        for (const post of posts) {
+            const getObjectParams = {
+                Bucket: process.env.BUCKET_NAME!!,
+                Key: post?.postUrl
+            }
+
+            const command = new GetObjectCommand(getObjectParams)
+            post.postUrl = await getSignedUrl(client, command, {expiresIn: 3600})
+
+            post.comments = await Comment.find({postId: post.id})
+            post.commentsCount = post.comments.length.toString()
+
+            const userS = users.filter(it => it.id == post.userId)
+            let user = null
+
+            if (!userS || userS.length == 0) {
+            } else {
+                user = userS[0]
+            }
+
+            const getObjectParams2 = {
+                Bucket: process.env.BUCKET_NAME!!,
+                Key: user!!.profileImageUrl
+            }
+            const command2 = new GetObjectCommand(getObjectParams2)
+            const url2 = await getSignedUrl(client, command2, {expiresIn: 3600})
+
+            post.username = user!!.username
+            post.profileImageUrl = url2
+        }
+
+        res.status(200).json(posts)
+
+    } catch (error: any) {
+        res.status(500).json({error: 'Failed to fetch posts', details: error})
+    }
+}
+
+const savePost = async (req: Request, res: Response) => {
+    try {
+        const userId = req.userId // set via auth middleware
+        const postId = parseInt(req.params.postId)
+
+        const exists = await Post.exists({id: postId})
+
+        if (!exists) {
+            res.status(400).json({message: 'Invalid postId'})
+        }
+
+        const savedPost = new Saved({
+            postId: postId,
+            userId: userId
+        })
+        const saved = await savedPost.save()
+
+        res.status(201).json({message: 'Post saved successfully', saved})
+    } catch (err: any) {
+        if (err.code === 11000) {
+            res.status(409).json({message: 'Post already saved'})
+        }
+
+        console.error(err)
+        res.status(500).json({message: 'Failed to save post'})
+    }
+}
+
+const fetchSaved = async (req: Request, res: Response) => {
+    try {
+        const userId = req.userId
+
+        // Fetch all saved post IDs for the user
+        const saved = await Saved.find({userId}).select('postId')
+
+        const postIds = saved.map(s => s.postId)
+
+        if (postIds.length === 0) {
+            res.status(200).json([])
+        } else {
+            const posts = await Post.find({ id: { $in: postIds } })
+
+            const enrichedPosts = await Promise.all(posts.map(async post => {
+                const signedPostUrl = post.postUrl
+                    ? await getSignedUrl(
+                        client,
+                        new GetObjectCommand({ Bucket: process.env.BUCKET_NAME!!, Key: post.postUrl }),
+                        { expiresIn: 3600 }
+                    )
+                    : ""
+
+                const comments = await Comment.find({ postId: post.id })
+                const commentsCount = comments.length.toString()
+
+                const user = await User.findOne({ id: post.userId }).select('username profileImageUrl')
+                const signedProfileImageUrl = user?.profileImageUrl
+                    ? await getSignedUrl(
+                        client,
+                        new GetObjectCommand({ Bucket: process.env.BUCKET_NAME!!, Key: user.profileImageUrl }),
+                        { expiresIn: 3600 }
+                    )
+                    : ""
+
+                return {
+                    id: post.id,
+                    caption: post.caption,
+                    postUrl: signedPostUrl,
+                    userId: post.userId,
+                    username: user?.username || '',
+                    profileImageUrl: signedProfileImageUrl,
+                    comments,
+                    commentsCount
+                }
+            }))
+
+            res.status(200).json(enrichedPosts)
+        }
+    } catch (err) {
+        console.error('Error fetching saved posts', err)
+        res.status(500).json({message: 'Server error'})
+    }
+}
+
+const unSavePost = async (req: Request, res: Response) => {
+    try {
+        const userId = req.userId
+        const postId = parseInt(req.params.postId)
+
+        const removed = await Saved.findOneAndDelete({ userId, postId })
+
+        if (!removed) {
+            res.status(404).json({ message: 'Saved post not found' })
+        }
+
+        res.status(200).json({ message: 'Post removed from saved list' })
+    } catch (err) {
+        console.error('Error removing saved post:', err)
+        res.status(500).json({ message: 'Server error' })
+    }
+}
+
 export default {
     getFeed,
     createPost,
@@ -364,5 +498,9 @@ export default {
     updateCaption,
     likePost,
     comment,
-    likeComment
+    likeComment,
+    exploreSection,
+    savePost,
+    fetchSaved,
+    unSavePost
 }

@@ -6,6 +6,7 @@ import client from "../util/s3Client";
 import {Story} from "../model/Story";
 import {getSignedUrl} from "@aws-sdk/s3-request-presigner";
 import {FollowEntry} from "../model/Followers";
+import {Highlight} from '../model/Highlight'
 
 const randomImageName = () => crypto.randomBytes(32).toString('hex')
 const bucketName = process.env.BUCKET_NAME || 'myBucketName'
@@ -48,49 +49,65 @@ const likeStory = async (req: Request, res: Response) => {
 const createStory = async (req: Request, res: Response) => {
     try {
         if (!req.file) {
-            res.status(400).json({message: "Bad Request"})
+            res.status(400).json({ message: "Image file is required" })
             return
         }
+
         const userId = req.userId
-        const user = await User.findOne({id: userId})
+        const [user] = await Promise.all([
+            User.findOne({ id: userId })
+        ])
 
         if (!user) {
-            res.status(404).json({message: "User not found"})
+            res.status(404).json({ message: "User not found" })
             return
         }
-        // Upload image to S3 Bucket
+
         const imageName = randomImageName()
 
-        const params = {
+        const uploadParams = {
             Bucket: bucketName,
             Key: imageName,
-            Body: req.file?.buffer,
-            ContentType: req.file?.mimetype
+            Body: req.file.buffer,
+            ContentType: req.file.mimetype
         }
 
-        const command = new PutObjectCommand(params)
-        await client.send(command)
+        await client.send(new PutObjectCommand(uploadParams))
 
-        const count = await Story.countDocuments({}, {hint: "_id_"})
+        // Run count operations in parallel
+        const [storyCount, highlightCount] = await Promise.all([
+            Story.countDocuments({}, { hint: "_id_" }),
+            Highlight.countDocuments({ userId })
+        ])
 
-        const story = new Story({
-            id: count + 1,
-            userId: userId,
+        const newStory = new Story({
+            id: storyCount + 1,
+            userId,
             storyUrl: imageName
         })
 
-        const createdStory = await story.save()
+        const newHighlight = new Highlight({
+            id: highlightCount + 1,
+            userId,
+            highlightUrl: imageName,
+            highlighted: false
+        })
 
-        if (!createdStory) {
-            res.status(500).json({error: "Failed to create story", details: "Unknown error occurred"})
-        } else {
-            res.status(201).json({message: "Story created successfully"})
-        }
+        // Save both in parallel
+        await Promise.all([newStory.save(), newHighlight.save()])
+
+        res.status(201).json({ message: "Story created successfully" })
 
     } catch (error: any) {
-        res.status(500).json({error: "Failed to create story", details: error})
+        console.error("Error creating story:", error)
+        res.status(500).json({
+            error: "Failed to create story",
+            details: error.message || error
+        })
     }
 }
+
+
 
 const deleteStory = async (req: Request, res: Response) => {
     try {
@@ -156,12 +173,12 @@ const getDisplayUsers = async (req: Request, res: Response) => {
     const userId = req.userId
     const object = await FollowEntry.findOne({userId: userId})
 
-    let users = [userId]
+    let users: number[] = []
     let displayUsers = []
 
     if (object) {
         const followingList = object.followingList
-        if(followingList != null && followingList.length > 0) {
+        if (followingList != null && followingList.length > 0) {
             users.push(...followingList)
         }
     }
@@ -205,5 +222,5 @@ export default {
     createStory,
     deleteStory,
     getUserStories,
-    getDisplayUsers,
+    getDisplayUsers
 }

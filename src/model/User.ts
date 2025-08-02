@@ -34,4 +34,6 @@ const userSchema = new Schema<User>({
   private: { type: Boolean, default: false }
 })
 
+userSchema.index({ username: "text", fullName: "text" })
+
 export const User = mongoose.model<User>("User", userSchema, "users")

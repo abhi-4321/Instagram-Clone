@@ -5,7 +5,7 @@ import multer from "../util/multer"
 const router = Router()
 
 // Create Highlight
-router.post("/", multer.single('image'), highlightController.createHighlight)
+router.post("/:highlightId", highlightController.createHighlight)
 
 // Delete Highlight
 router.delete('/:highlightId', highlightController.deleteHighlight)
@@ -15,5 +15,8 @@ router.get("/:highlightId", highlightController.getHighlight)
 
 // All Highlights
 router.get("/", highlightController.allHighlights)
+
+// Fetch past stories
+router.get("/stories", highlightController.allHighlights)
 
 export default router

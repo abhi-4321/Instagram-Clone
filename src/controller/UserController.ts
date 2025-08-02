@@ -160,7 +160,6 @@ const getAllUsers = async (_req: Request, res: Response) => {
                 post.commentsCount = post.comments.length.toString()
             }
 
-            user.posts = posts
             user.postsCount = posts.length.toString()
 
             // Get Highlights Signed Urls
@@ -247,7 +246,6 @@ const getUserById = async (req: Request, res: Response) => {
             post.profileImageUrl = profileImageUrl
         }
 
-        user.posts = posts
         user.postsCount = posts.length.toString()
 
         // Get Highlights Signed Urls
@@ -382,7 +380,6 @@ const getProfileById = async (req: Request, res: Response) => {
             post.profileImageUrl = profileImageUrl
         }
 
-        user.posts = posts
         user.postsCount = posts.length.toString()
 
         // Get Highlights Signed Urls

@@ -691,19 +691,12 @@ paths:
 
   # Upload profile image
   /user/profileImage:
-    put:
+    post:
       tags:
         - User Controller
       description: Upload and update a user's profile image.
       security:
         - BearerAuth: [ ]
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          description: The ID of the user whose profile image will be updated.
-          schema:
-            type: integer
       requestBody:
         required: true
         content:
@@ -711,7 +704,7 @@ paths:
             schema:
               type: object
               properties:
-                file:
+                image:
                   type: string
                   format: binary
                   description: The profile image file to upload.
@@ -1486,3 +1479,269 @@ paths:
                       type: string
         500:
           description: Server error
+
+  /user/profileImage:
+    post:
+      tags:
+        - User Controller
+      description: Upload and update a user's profile image.
+      security:
+        - BearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: The profile image file to upload.
+      responses:
+        200:
+          description: Profile picture updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Profile picture updated"
+        400:
+          description: Bad request if no file is uploaded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Bad Request"
+        404:
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User not found"
+        500:
+          description: Internal server error if the image upload or update fails.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to upload image"
+                  details:
+                    type: string
+                    example: "Detailed error message here."
+
+  /user/{userId}:
+    get:
+      tags:
+        - User Controller
+      description: Get user details by userId.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: User details retrieved successfully.
+        404:
+          description: User not found.
+        500:
+          description: Internal server error.
+
+  /user/search:
+    get:
+      tags:
+        - User Controller
+      description: Search for users by query string.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: List of users matching the search.
+        500:
+          description: Internal server error.
+
+  /post/explore:
+    get:
+      tags:
+        - Post Controller
+      description: Get explore section posts.
+      security:
+        - BearerAuth: [ ]
+      responses:
+        200:
+          description: List of explore posts.
+        500:
+          description: Internal server error.
+
+  /post/save/{postId}:
+    post:
+      tags:
+        - Post Controller
+      description: Save a post for the current user.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Post saved successfully.
+        404:
+          description: Post not found.
+        500:
+          description: Internal server error.
+
+  /post/saved:
+    get:
+      tags:
+        - Post Controller
+      description: Get all saved posts for the current user.
+      security:
+        - BearerAuth: [ ]
+      responses:
+        200:
+          description: List of saved posts.
+        500:
+          description: Internal server error.
+
+  /post/saved/{postId}:
+    delete:
+      tags:
+        - Post Controller
+      description: Remove a saved post for the current user.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Saved post removed successfully.
+        404:
+          description: Saved post not found.
+        500:
+          description: Internal server error.
+
+  /highlight/{highlightId}:
+    post:
+      tags:
+        - Highlight Controller
+      description: Create a highlight for a user by highlightId (if supported).
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: highlightId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                title:
+                  type: string
+      responses:
+        200:
+          description: Highlight created successfully.
+        400:
+          description: Bad request.
+        404:
+          description: User not found.
+        500:
+          description: Internal server error.
+
+  /highlight/stories:
+    get:
+      tags:
+        - Highlight Controller
+      description: Fetch past stories (if supported by controller).
+      security:
+        - BearerAuth: [ ]
+      responses:
+        200:
+          description: List of past stories.
+        500:
+          description: Internal server error.
+
+  /chat/users:
+    get:
+      tags:
+        - Chat Controller
+      description: Get chat users for the current user.
+      security:
+        - BearerAuth: [ ]
+      responses:
+        200:
+          description: List of chat users.
+        500:
+          description: Internal server error.
+
+  /chat/all:
+    get:
+      tags:
+        - Chat Controller
+      description: Get all followers for chat for the current user.
+      security:
+        - BearerAuth: [ ]
+      responses:
+        200:
+          description: List of followers for chat.
+        500:
+          description: Internal server error.
+
+  /chat/{receiverId}:
+    get:
+      tags:
+        - Chat Controller
+      description: Get chat with a specific user.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: receiverId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Chat messages with the user.
+        404:
+          description: No chats found.
+        500:
+          description: Internal server error.

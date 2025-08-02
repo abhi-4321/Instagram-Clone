@@ -144,38 +144,42 @@ const getFeed = async (req: Request, res: Response) => {
         const listOfUsers: number[] = users.map(user => user.id)
         const posts = await Post.find({userId: {$in: listOfUsers}})
 
-        for (const post of posts) {
+        const result = await Promise.all(posts.map(async post => {
             const getObjectParams = {
                 Bucket: process.env.BUCKET_NAME!!,
                 Key: post?.postUrl
             }
-
             const command = new GetObjectCommand(getObjectParams)
             post.postUrl = await getSignedUrl(client, command, {expiresIn: 3600})
-
             post.comments = await Comment.find({postId: post.id})
             post.commentsCount = post.comments.length.toString()
-
             const userS = users.filter(it => it.id == post.userId)
             let user = null
-
             if (!userS || userS.length == 0) {
             } else {
                 user = userS[0]
             }
-
             const getObjectParams2 = {
                 Bucket: process.env.BUCKET_NAME!!,
                 Key: user!!.profileImageUrl
             }
             const command2 = new GetObjectCommand(getObjectParams2)
             const url2 = await getSignedUrl(client, command2, {expiresIn: 3600})
-
-            post.username = user!!.username
-            post.profileImageUrl = url2
-        }
-
-        res.status(200).json(posts)
+            return {
+                id: post.id,
+                userId: post.userId,
+                postUrl: post.postUrl,
+                caption: post.caption,
+                likesCount: post.likesCount,
+                likedBy: post.likedBy,
+                commentsCount: post.commentsCount,
+                comments: post.comments,
+                username: user!!.username,
+                profileImageUrl: url2,
+                createdAt: post.createdAt
+            }
+        }))
+        res.status(200).json(result)
 
     } catch (error: any) {
         res.status(500).json({error: 'Failed to fetch posts', details: error})
@@ -269,7 +273,6 @@ const getPostById = async (req: Request, res: Response) => {
     try {
         const postId = parseInt(req.params.postId)
         const post = await Post.findOne({id: postId})
-
         if (!post) {
             res.status(404).json({error: 'Post not found'})
         } else {
@@ -277,14 +280,23 @@ const getPostById = async (req: Request, res: Response) => {
                 Bucket: process.env.BUCKET_NAME!!,
                 Key: post?.postUrl
             }
-
             const command = new GetObjectCommand(getObjectParams)
             post.postUrl = await getSignedUrl(client, command, {expiresIn: 3600})
-
             post.comments = await Comment.find({postId: post.id})
             post.commentsCount = post.comments.length.toString()
-
-            res.status(200).json(post)
+            res.status(200).json({
+                id: post.id,
+                userId: post.userId,
+                postUrl: post.postUrl,
+                caption: post.caption,
+                likesCount: post.likesCount,
+                likedBy: post.likedBy,
+                commentsCount: post.commentsCount,
+                comments: post.comments,
+                username: post.username,
+                profileImageUrl: post.profileImageUrl,
+                createdAt: post.createdAt
+            })
         }
     } catch (error: any) {
         res.status(500).json({error: 'Failed to fetch post', details: error})
@@ -295,21 +307,30 @@ const getAllPosts = async (req: Request, res: Response) => {
     try {
         const userId = req.userId
         const posts = await Post.find({userId: userId})
-
-        for (const post of posts) {
+        const result = await Promise.all(posts.map(async post => {
             const getObjectParams = {
                 Bucket: process.env.BUCKET_NAME!!,
                 Key: post?.postUrl
             }
-
             const command = new GetObjectCommand(getObjectParams)
             post.postUrl = await getSignedUrl(client, command, {expiresIn: 3600})
-
             post.comments = await Comment.find({postId: post.id})
             post.commentsCount = post.comments.length.toString()
-        }
-
-        res.status(200).json(posts)
+            return {
+                id: post.id,
+                userId: post.userId,
+                postUrl: post.postUrl,
+                caption: post.caption,
+                likesCount: post.likesCount,
+                likedBy: post.likedBy,
+                commentsCount: post.commentsCount,
+                comments: post.comments,
+                username: post.username,
+                profileImageUrl: post.profileImageUrl,
+                createdAt: post.createdAt
+            }
+        }))
+        res.status(200).json(result)
 
     } catch (error: any) {
         res.status(500).json({error: 'Failed to fetch posts', details: error})
@@ -459,7 +480,8 @@ const fetchSaved = async (req: Request, res: Response) => {
                     username: user?.username || '',
                     profileImageUrl: signedProfileImageUrl,
                     comments,
-                    commentsCount
+                    commentsCount,
+                    createdAt: post.createdAt
                 }
             }))
 

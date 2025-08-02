@@ -918,7 +918,6 @@ paths:
                     example: "Failed to upload image"
 
   /highlight/{highlightId}:
-
     # Delete highlight by ID
     delete:
       tags:
@@ -964,6 +963,40 @@ paths:
                   message:
                     type: string
                     example: "Unknown error occurred"
+
+    post:
+      tags:
+        - Highlight Controller
+      description: Create a highlight for a user by highlightId (if supported).
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: highlightId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                title:
+                  type: string
+      responses:
+        200:
+          description: Highlight created successfully.
+        400:
+          description: Bad request.
+        404:
+          description: User not found.
+        500:
+          description: Internal server error.
 
     # Get highlight by ID
     get:
@@ -1019,6 +1052,8 @@ paths:
                   error:
                     type: string
                     example: "Failed to fetch highlight"
+
+
 
   # Story
   # Controller
@@ -1480,69 +1515,6 @@ paths:
         500:
           description: Server error
 
-  /user/profileImage:
-    post:
-      tags:
-        - User Controller
-      description: Upload and update a user's profile image.
-      security:
-        - BearerAuth: [ ]
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                image:
-                  type: string
-                  format: binary
-                  description: The profile image file to upload.
-      responses:
-        200:
-          description: Profile picture updated successfully.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Profile picture updated"
-        400:
-          description: Bad request if no file is uploaded.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Bad Request"
-        404:
-          description: User not found.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "User not found"
-        500:
-          description: Internal server error if the image upload or update fails.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Failed to upload image"
-                  details:
-                    type: string
-                    example: "Detailed error message here."
-
   /user/{userId}:
     get:
       tags:
@@ -1648,41 +1620,6 @@ paths:
           description: Saved post removed successfully.
         404:
           description: Saved post not found.
-        500:
-          description: Internal server error.
-
-  /highlight/{highlightId}:
-    post:
-      tags:
-        - Highlight Controller
-      description: Create a highlight for a user by highlightId (if supported).
-      security:
-        - BearerAuth: [ ]
-      parameters:
-        - name: highlightId
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                image:
-                  type: string
-                  format: binary
-                title:
-                  type: string
-      responses:
-        200:
-          description: Highlight created successfully.
-        400:
-          description: Bad request.
-        404:
-          description: User not found.
         500:
           description: Internal server error.
 

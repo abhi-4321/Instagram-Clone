@@ -38,7 +38,7 @@ router.get("/", userController.getUserById)
 router.delete("/", userController.deleteUser)
 
 // Get user by id
-router.get("/:userId", userController.getUserById)
+router.get("/:userId", userController.getProfileById)
 
 // Search for users
 router.get("search", userController.searchUsers)

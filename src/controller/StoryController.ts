@@ -48,54 +48,61 @@ const likeStory = async (req: Request, res: Response) => {
 
 const createStory = async (req: Request, res: Response) => {
     try {
+        // Check for image file
         if (!req.file) {
             res.status(400).json({ message: "Image file is required" })
             return
         }
 
-        const userId = req.userId
-        const [user] = await Promise.all([
-            User.findOne({ id: userId })
-        ])
+        const userId = Number(req.userId); // Ensure it's a number
+        if (isNaN(userId)) {
+            res.status(400).json({ message: "Invalid user ID" })
+            return
+        }
 
+        // Find user
+        const user = await User.findOne({ id: userId })
         if (!user) {
             res.status(404).json({ message: "User not found" })
             return
         }
 
+        // Generate image name and upload to S3
         const imageName = randomImageName()
-
         const uploadParams = {
             Bucket: bucketName,
             Key: imageName,
             Body: req.file.buffer,
             ContentType: req.file.mimetype
         }
-
         await client.send(new PutObjectCommand(uploadParams))
 
-        // Run count operations in parallel
-        const [storyCount, highlightCount] = await Promise.all([
-            Story.countDocuments({}, { hint: "_id_" }),
-            Highlight.countDocuments({ userId })
-        ])
+        // Get new story ID (sequential)
+        const storyCount = await Story.countDocuments()
+        const storyId = storyCount + 1
 
         const newStory = new Story({
-            id: storyCount + 1,
+            id: storyId,
             userId,
             storyUrl: imageName
-        })
+        });
+
+        await newStory.save() // Save story first
+
+        // Get new highlight ID (sequential)
+        const highlightCount = await Highlight.countDocuments()
+        const highlightId = highlightCount + 1
 
         const newHighlight = new Highlight({
-            id: highlightCount + 1,
+            id: highlightId,
             userId,
             highlightUrl: imageName,
             highlighted: false
         })
 
-        // Save both in parallel
-        await Promise.all([newStory.save(), newHighlight.save()])
+        await newHighlight.save() // Save highlight next
 
+        // Respond
         res.status(201).json({ message: "Story created successfully" })
 
     } catch (error: any) {

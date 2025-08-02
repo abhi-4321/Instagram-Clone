@@ -7,25 +7,28 @@ import {GetObjectCommand} from "@aws-sdk/client-s3";
 const createHighlight = async (req: Request, res: Response) => {
     try {
         const highlightId = parseInt(req.params.highlightId)
+        const title: string = req.body.title
+        const userId = req.userId
 
         if (!highlightId) {
             res.status(400).json({ message: "Bad Request" })
             return
         }
 
-        const highlight = await Highlight.findOne({ id: highlightId })
+        const highlight = await Highlight.findOne({ id: highlightId, userId: userId })
 
         if (!highlight) {
             res.status(404).json({ message: "Not found" })
             return
         }
 
+        highlight.title = title
         highlight.highlighted = true
         await highlight.save()
 
         res.status(200).json({ message: "Highlight created successfully" })
     } catch (error: any) {
-        res.status(500).json({ error: "Failed to upload image", details: error })
+        res.status(500).json({ error: "Failed to create highlight", details: error })
     }
 }
 
@@ -55,6 +58,8 @@ const deleteHighlight = async (req: Request, res: Response) => {
 }
 
 const getHighlight = async (req: Request, res: Response) => {
+    console.log(req.params.highlightId)
+
     try {
         const highlightId = parseInt(req.params.highlightId)
         const highlight = await Highlight.findOne({ id: highlightId })
@@ -78,6 +83,8 @@ const getHighlight = async (req: Request, res: Response) => {
 }
 
 const allHighlights = async (req: Request, res: Response) => {
+
+    console.log("Hello")
     try {
         const userId = req.userId
         const highlights = await Highlight.find({ userId: userId, highlighted: true })
@@ -100,8 +107,12 @@ const allHighlights = async (req: Request, res: Response) => {
 }
 
 const fetchPastStories = async (req: Request, res: Response) => {
+    console.log("userId")
     try {
         const userId = req.userId
+
+        console.log(userId)
+
         const highlights = await Highlight.find({ userId: userId, highlighted: false })
 
         for (const highlight of highlights) {

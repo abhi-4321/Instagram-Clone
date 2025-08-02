@@ -343,10 +343,18 @@ const getProfileById = async (req: Request, res: Response) => {
         const userId = parseInt(req.params.userId)
         const user = await User.findOne({id: userId})
 
+        const curr = req.userId
+        const currEntry = await FollowEntry.findOne({userId: curr})
+
         if (!user) {
             res.status(404).json({error: 'User not found'})
             return
         }
+
+        const entry = await FollowEntry.findOne({userId: userId})
+
+        user.followersCount = entry!!.followersList.length.toString()
+        user.followingCount = entry!!.followingList.length.toString()
 
         let profileImageUrl = ""
 
@@ -361,46 +369,51 @@ const getProfileById = async (req: Request, res: Response) => {
             profileImageUrl = user.profileImageUrl
         }
 
-        const posts = await Post.find({userId: userId})
+        let canViewContent = !user.private || currEntry!!.followingList.includes(userId)
 
-        // Get Posts' Signed Urls
-        for (const post of posts) {
-            const getObjectParams = {
-                Bucket: process.env.BUCKET_NAME!!,
-                Key: post.postUrl
+        if (canViewContent) {
+            const posts = await Post.find({userId: userId})
+
+            // Get Posts' Signed Urls
+            for (const post of posts) {
+                const getObjectParams = {
+                    Bucket: process.env.BUCKET_NAME!!,
+                    Key: post.postUrl
+                }
+
+                const command = new GetObjectCommand(getObjectParams)
+                post.postUrl = await getSignedUrl(client, command, {expiresIn: 3600})
+
+                post.comments = await Comment.find({postId: post.id})
+                post.commentsCount = post.comments.length.toString()
+
+                post.username = user.username
+                post.profileImageUrl = profileImageUrl
             }
 
-            const command = new GetObjectCommand(getObjectParams)
-            post.postUrl = await getSignedUrl(client, command, {expiresIn: 3600})
+            console.log("Posts : " + posts)
 
-            post.comments = await Comment.find({postId: post.id})
-            post.commentsCount = post.comments.length.toString()
+            user.posts = posts
 
-            post.username = user.username
-            post.profileImageUrl = profileImageUrl
-        }
+            // Get Highlights Signed Urls
+            const highlights = await Highlight.find({userId: userId, highlighted: true})
 
-        user.postsCount = posts.length.toString()
+            for (const highlight of highlights) {
+                const getObjectParams = {
+                    Bucket: process.env.BUCKET_NAME!!,
+                    Key: highlight.highlightUrl
+                }
 
-        // Get Highlights Signed Urls
-        const highlights = await Highlight.find({userId: userId})
-
-        for (const highlight of highlights) {
-            const getObjectParams = {
-                Bucket: process.env.BUCKET_NAME!!,
-                Key: highlight.highlightUrl
+                const command = new GetObjectCommand(getObjectParams)
+                highlight.highlightUrl = await getSignedUrl(client, command, {expiresIn: 3600})
             }
 
-            const command = new GetObjectCommand(getObjectParams)
-            highlight.highlightUrl = await getSignedUrl(client, command, {expiresIn: 3600})
+            user.highlights = highlights
+            user.postsCount = posts.length.toString()
+        } else {
+            const posts = await Post.countDocuments({userId: userId})
+            user.postsCount = posts.toString()
         }
-
-        user.highlights = highlights
-
-        const entry = await FollowEntry.findOne({userId: userId})
-
-        user.followersCount = entry!!.followersList.length.toString()
-        user.followingCount = entry!!.followingList.length.toString()
 
         res.status(200).json(user)
     } catch (error: any) {
@@ -415,15 +428,15 @@ const searchUsers = async (req: Request, res: Response) => {
     const skip = (page - 1) * limit
 
     if (!query || query.trim().length === 0) {
-        res.status(400).json({ message: 'Invalid query' })
+        res.status(400).json({message: 'Invalid query'})
     }
 
     try {
         // Count total matched users
-        const total = await User.countDocuments({ $text: { $search: query } })
+        const total = await User.countDocuments({$text: {$search: query}})
 
         // Fetch paginated results
-        const users = await User.find({ $text: { $search: query } })
+        const users = await User.find({$text: {$search: query}})
             .skip(skip)
             .limit(limit)
             .select('fullName username profileImageUrl id')
@@ -436,7 +449,7 @@ const searchUsers = async (req: Request, res: Response) => {
                     Bucket: process.env.BUCKET_NAME!!,
                     Key: user.profileImageUrl
                 })
-                piu = await getSignedUrl(client, command, { expiresIn: 3600 })
+                piu = await getSignedUrl(client, command, {expiresIn: 3600})
             }
 
             return {
@@ -455,7 +468,7 @@ const searchUsers = async (req: Request, res: Response) => {
         })
     } catch (err) {
         console.error(err)
-        res.status(500).json({ message: 'Internal server error' })
+        res.status(500).json({message: 'Internal server error'})
     }
 }
 

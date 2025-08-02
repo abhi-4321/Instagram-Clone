@@ -855,68 +855,6 @@ paths:
                     type: string
                     example: "Failed to fetch highlights"
 
-
-    # Create a new highlight
-    post:
-      tags:
-        - Highlight Controller
-      description: Upload a new highlight image for a user.
-      security:
-        - BearerAuth: [ ]
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                title:
-                  type: string
-                  example: "Vacation Highlights"
-                image:
-                  type: string
-                  format: binary
-      responses:
-        200:
-          description: Highlight created successfully.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Highlight created successfully"
-        400:
-          description: Bad request (missing body or file).
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Bad Request"
-        404:
-          description: User not found.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "User not found"
-        500:
-          description: Internal server error.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Failed to upload image"
-
   /highlight/{highlightId}:
     # Delete highlight by ID
     delete:
@@ -979,15 +917,13 @@ paths:
       requestBody:
         required: true
         content:
-          multipart/form-data:
+          application/json:
             schema:
               type: object
               properties:
-                image:
-                  type: string
-                  format: binary
                 title:
                   type: string
+                  required: true
       responses:
         200:
           description: Highlight created successfully.

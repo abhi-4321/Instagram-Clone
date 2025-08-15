@@ -163,7 +163,7 @@ const getAllUsers = async (_req: Request, res: Response) => {
             user.postsCount = posts.length.toString()
 
             // Get Highlights Signed Urls
-            const highlights = await Highlight.find({userId: user.id})
+            const highlights = await Highlight.find({userId: user.id, highlighted: true})
 
             for (const highlight of highlights) {
                 const getObjectParams = {
@@ -246,10 +246,11 @@ const getUserById = async (req: Request, res: Response) => {
             post.profileImageUrl = profileImageUrl
         }
 
+        user.posts = posts
         user.postsCount = posts.length.toString()
 
         // Get Highlights Signed Urls
-        const highlights = await Highlight.find({userId: userId})
+        const highlights = await Highlight.find({userId: userId, highlighted: true})
 
         for (const highlight of highlights) {
             const getObjectParams = {
@@ -390,8 +391,6 @@ const getProfileById = async (req: Request, res: Response) => {
                 post.username = user.username
                 post.profileImageUrl = profileImageUrl
             }
-
-            console.log("Posts : " + posts)
 
             user.posts = posts
 

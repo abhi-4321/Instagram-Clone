@@ -219,8 +219,6 @@ const createPost = async (req: Request, res: Response) => {
             userId: userId,
             caption: req.body.caption || "",
             postUrl: imageName,
-            username: user.username,
-            profileImageUrl: user.profileImageUrl
         })
 
         const createdPost = await post.save()
@@ -230,7 +228,6 @@ const createPost = async (req: Request, res: Response) => {
         } else {
             res.status(201).json({message: "Post created successfully"})
         }
-
     } catch (error: any) {
         res.status(500).json({error: "Failed to create post", details: error})
     }
@@ -276,6 +273,19 @@ const getPostById = async (req: Request, res: Response) => {
         if (!post) {
             res.status(404).json({error: 'Post not found'})
         } else {
+
+            const user = await User.findOne({id: post.userId}).select('username profileImageUrl')
+
+            if (!user) {
+                res.status(404).json({error: 'User not found'})
+                return
+            }
+
+            const profileUrl = await getSignedUrl(client, new GetObjectCommand({
+                Bucket: process.env.BUCKET_NAME!!,
+                Key: user.profileImageUrl
+            }), {expiresIn: 3600})
+
             const getObjectParams = {
                 Bucket: process.env.BUCKET_NAME!!,
                 Key: post?.postUrl
@@ -293,8 +303,8 @@ const getPostById = async (req: Request, res: Response) => {
                 likedBy: post.likedBy,
                 commentsCount: post.commentsCount,
                 comments: post.comments,
-                username: post.username,
-                profileImageUrl: post.profileImageUrl,
+                username: user.username,
+                profileImageUrl: profileUrl,
                 createdAt: post.createdAt
             })
         }
@@ -307,6 +317,19 @@ const getAllPosts = async (req: Request, res: Response) => {
     try {
         const userId = req.userId
         const posts = await Post.find({userId: userId})
+
+        const user = await User.findOne({id: userId}).select('username profileImageUrl')
+
+        if (!user) {
+            res.status(404).json({error: "User not found"})
+            return
+        }
+
+        const profileUrl = await getSignedUrl(client, new GetObjectCommand({
+            Bucket: process.env.BUCKET_NAME!!,
+            Key: user.profileImageUrl
+        }), {expiresIn: 3600})
+
         const result = await Promise.all(posts.map(async post => {
             const getObjectParams = {
                 Bucket: process.env.BUCKET_NAME!!,
@@ -325,8 +348,8 @@ const getAllPosts = async (req: Request, res: Response) => {
                 likedBy: post.likedBy,
                 commentsCount: post.commentsCount,
                 comments: post.comments,
-                username: post.username,
-                profileImageUrl: post.profileImageUrl,
+                username: user.username,
+                profileImageUrl: profileUrl,
                 createdAt: post.createdAt
             }
         }))
@@ -449,26 +472,26 @@ const fetchSaved = async (req: Request, res: Response) => {
         if (postIds.length === 0) {
             res.status(200).json([])
         } else {
-            const posts = await Post.find({ id: { $in: postIds } })
+            const posts = await Post.find({id: {$in: postIds}})
 
             const enrichedPosts = await Promise.all(posts.map(async post => {
                 const signedPostUrl = post.postUrl
                     ? await getSignedUrl(
                         client,
-                        new GetObjectCommand({ Bucket: process.env.BUCKET_NAME!!, Key: post.postUrl }),
-                        { expiresIn: 3600 }
+                        new GetObjectCommand({Bucket: process.env.BUCKET_NAME!!, Key: post.postUrl}),
+                        {expiresIn: 3600}
                     )
                     : ""
 
-                const comments = await Comment.find({ postId: post.id })
+                const comments = await Comment.find({postId: post.id})
                 const commentsCount = comments.length.toString()
 
-                const user = await User.findOne({ id: post.userId }).select('username profileImageUrl')
+                const user = await User.findOne({id: post.userId}).select('username profileImageUrl')
                 const signedProfileImageUrl = user?.profileImageUrl
                     ? await getSignedUrl(
                         client,
-                        new GetObjectCommand({ Bucket: process.env.BUCKET_NAME!!, Key: user.profileImageUrl }),
-                        { expiresIn: 3600 }
+                        new GetObjectCommand({Bucket: process.env.BUCKET_NAME!!, Key: user.profileImageUrl}),
+                        {expiresIn: 3600}
                     )
                     : ""
 
@@ -498,16 +521,16 @@ const unSavePost = async (req: Request, res: Response) => {
         const userId = req.userId
         const postId = parseInt(req.params.postId)
 
-        const removed = await Saved.findOneAndDelete({ userId, postId })
+        const removed = await Saved.findOneAndDelete({userId, postId})
 
         if (!removed) {
-            res.status(404).json({ message: 'Saved post not found' })
+            res.status(404).json({message: 'Saved post not found'})
         }
 
-        res.status(200).json({ message: 'Post removed from saved list' })
+        res.status(200).json({message: 'Post removed from saved list'})
     } catch (err) {
         console.error('Error removing saved post:', err)
-        res.status(500).json({ message: 'Server error' })
+        res.status(500).json({message: 'Server error'})
     }
 }
 

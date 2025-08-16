@@ -24,7 +24,7 @@ const postSchema = new Schema<Post>({
     likedBy: { type: [], default: [] },
     commentsCount: { type: String, default: "0" },
     comments: { type: [], default: [] },
-    username: { type: String, required: true },
+    username: { type: String, default: ""},
     profileImageUrl: { type: String, default: ""},
     createdAt: { type: Date, default: Date.now }
 })

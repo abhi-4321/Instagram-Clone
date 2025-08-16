@@ -19,4 +19,7 @@ router.post('/sendOtp', OtpController.sendOtp)
 // Verify Otp
 router.post("/verifyOtp", OtpController.verifyEmail)
 
+// Validate Token
+router.get("/validateToken/:token", AuthController.validateToken)
+
 export default router

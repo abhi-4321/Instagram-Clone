@@ -130,9 +130,32 @@ const validateUsername = async (req: Request, res: Response) => {
     }
 }
 
+const validateToken = async (req: Request, res: Response) => {
+    try {
+        const token = req.params.token
+        // Decode the token
+        const decoded = jwt.verify(token, JWT_SECRET) as { userId: number }
+
+        // Find the token in the database
+        const storedToken = await Token.findOne({ userId: decoded.userId })
+
+        // Check if the token matches the stored token and hasn't expired
+        if (!storedToken || storedToken.token !== token) {
+            res.status(401).json({error: "Invalid token"})
+            return
+        }
+
+        // If all checks pass, return true
+        res.sendStatus(200)
+    } catch (err: any) {
+        res.status(500).json({error: "Token verification error:", details: err.message})
+    }
+}
+
 export default {
     login,
     register,
-    validateUsername
+    validateUsername,
+    validateToken
 }
 

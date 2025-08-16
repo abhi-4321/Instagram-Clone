@@ -146,7 +146,7 @@ const validateToken = async (req: Request, res: Response) => {
         }
 
         // If all checks pass, return true
-        res.sendStatus(200)
+        res.status(200).json({userId: decoded.userId})
     } catch (err: any) {
         res.status(500).json({error: "Token verification error:", details: err.message})
     }
